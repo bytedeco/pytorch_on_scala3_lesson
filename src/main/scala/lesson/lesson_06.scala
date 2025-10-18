@@ -3,7 +3,6 @@ package lesson
 import org.bytedeco.javacpp.{FloatPointer, PointerScope}
 import org.bytedeco.pytorch
 import org.bytedeco.pytorch.global.torch as torchNative
-import org.bytedeco.pytorch.{TensorDataset, *}
 import torch.Device.{CPU, CUDA}
 import torch.internal.NativeConverters.{fromNative, toNative}
 import torch.nn.modules.{HasParams, TensorModule}
