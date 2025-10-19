@@ -1,30 +1,10 @@
 package lesson
 
-import org.bytedeco.javacpp.{FloatPointer, PointerScope}
-import org.bytedeco.pytorch
 import org.bytedeco.pytorch.global.torch as torchNative
-import org.bytedeco.pytorch.*
 import torch.Device.{CPU, CUDA}
 import torch.internal.NativeConverters.{fromNative, toNative}
 import torch.nn.modules.{HasParams, TensorModule}
-import torch.nn.{modules, functional as F}
-import torch.numpy.TorchNumpy as np
-import torch.optim.Adam
-import torch.optim.lr_scheduler.{CosineAnnealingLR, CosineAnnealingWarmRestarts, LambdaLR}
-import torch.utils.data.dataloader.*
-import torch.utils.data.datareader.ChunkDataReader
-import torch.utils.data.dataset.*
-import torch.utils.data.dataset.custom.{FashionMNIST, MNIST}
-import torch.utils.data.sampler.RandomSampler
-import torch.utils.data.*
 import torch.{Tensor, *}
-
-import java.net.URL
-import java.nio.file.{Files, Path, Paths}
-import java.util.zip.GZIPInputStream
-import scala.annotation.StaticAnnotation
-import scala.collection.mutable.{ListBuffer, SortedMap as OrderedDict}
-import scala.collection.{mutable, Set as KeySet}
 import scala.util.*
 //class LargeTextFileDataset(file_path: String, tokenizer: (String) => Tensor[ParamType]) extends IterableDataset{
 //
@@ -79,18 +59,19 @@ import scala.util.*
 //
 //}
 // 1. 定义一个简单模型
-class SimpleCNN21[ParamType <: FloatNN: Default](num_classes: Int=10) extends TensorModule[ParamType] {
+class SimpleCNN21[ParamType <: FloatNN: Default](num_classes: Int = 10)
+    extends TensorModule[ParamType] {
 
-  val conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
+  val conv1 = nn.Conv2d(3, 32, kernel_size = 3, padding = 1)
   val relu = nn.ReLU()
-  val pool = nn.MaxPool2d(kernel_size=2, stride=2)
-  val conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+  val pool = nn.MaxPool2d(kernel_size = 2, stride = 2)
+  val conv2 = nn.Conv2d(32, 64, kernel_size = 3, padding = 1)
   // 为全连接层展平特征
   val fc = nn.Linear(64 * 16 * 16, num_classes) // 假设输入图像为 32x32
 
   override def apply(input: Tensor[ParamType]): Tensor[ParamType] = forward(input)
 
-  def forward(input: Tensor[ParamType]): Tensor[ParamType] ={
+  def forward(input: Tensor[ParamType]): Tensor[ParamType] = {
     var x = pool(relu(conv1(input)))
     x = pool(relu(conv2(x)))
     x = torch.flatten(x, 1) // 展平除批次维度外的所有维度
@@ -98,6 +79,4 @@ class SimpleCNN21[ParamType <: FloatNN: Default](num_classes: Int=10) extends Te
     x
   }
 }
-object lesson_11_2 {
-
-}
+object lesson_11_2 {}

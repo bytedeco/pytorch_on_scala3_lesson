@@ -1,9 +1,12 @@
 package lesson
 
-//import org.bytedeco.javacpp.{FloatPointer, PointerScope}
-//import org.bytedeco.pytorch
-//import org.bytedeco.pytorch.global.torch as torchNative
-import org.bytedeco.pytorch.{TensorBase, TensorExampleVectorIterator, TensorTensorHook, VoidTensorHook, Tensor as NativeTensor}
+import org.bytedeco.pytorch.{
+  TensorBase,
+  TensorExampleVectorIterator,
+  TensorTensorHook,
+  VoidTensorHook,
+  Tensor as NativeTensor
+}
 import torch.Device.{CPU, CUDA}
 import torch.internal.NativeConverters.{fromNative, toNative}
 import torch.nn.modules.{HasParams, TensorModule}
@@ -11,8 +14,9 @@ import torch.nn.{modules, functional as F}
 import torch.*
 import scala.util.*
 
-
-class SimpleNetzs[ParamType <: FloatNN: Default] extends TensorModule[ParamType]  with HasParams[ParamType] {
+class SimpleNetzs[ParamType <: FloatNN: Default]
+    extends TensorModule[ParamType]
+    with HasParams[ParamType] {
 
   val linear1 = nn.Linear(10, 5)
   val relu = nn.ReLU()
@@ -32,7 +36,7 @@ object lesson_09_2 {
 
 //  @main
   def main(): Unit = {
-    //01
+    // 01
     // 输入张量需要梯度
     val x = torch.tensor(Seq(2.0), requires_grad = true)
     // 第一次计算: y = x^3
@@ -52,9 +56,9 @@ object lesson_09_2 {
     // 检查二阶导数的 requires_grad 状态
     println(f"二阶导数张量 requires_grad: ${grad2_y_x2.requires_grad}")
 
-    //02
+    // 02
     val w = torch.tensor(Seq(1.0, math.Pi / 2.0), requires_grad = true) // w1=1，w2=pi/2
-    val v = torch.tensor(Seq(0.5, 1.0),dtype=torch.float64) // 一个任意向量
+    val v = torch.tensor(Seq(0.5, 1.0), dtype = torch.float64) // 一个任意向量
 
     // 定义函数
     val f = w(0) ** 2 * torch.sin(w(1))
@@ -77,14 +81,13 @@ object lesson_09_2 {
     // 预期 HVP: [[2, 0], [0, -1]] @ [0.5, 1.0] = [2*0.5 + 0*1, 0*0.5 + (-1)*1] = [1.0, -1.0]
     println(f"Hessian-向量积 (nabla^2 f) v: ${hvp}")
 
-
-    //03
+    // 03
     // 示例设置
     val w2 = torch.randn(Seq(5, 3), requires_grad = true)
     val x2 = torch.randn(3, 2)
     val y_true = torch.randn(5, 2)
     // 前向传播
-    val y_pred = w2 @@x2
+    val y_pred = w2 @@ x2
     val loss = F.mse_loss(y_pred.to(torch.float16), y_true.to(torch.float16))
     // 反向传播
     loss.backward()
@@ -94,8 +97,7 @@ object lesson_09_2 {
     println(f"Gradient for x:\n ${x2.grad}") // 输出: None (默认requires_grad=False)
     println(f"Gradient for y_pred:\n ${y_pred.grad}") // 输出: None (非叶子张量，默认不保留梯度)
 
-
-    //04
+    // 04
 //    // 检查None梯度（假设'model'是你的torch.nn.Module实例）
 //    for((name, param) <- model.named_parameters() ){
 //      if param.grad == None {
@@ -122,11 +124,9 @@ object lesson_09_2 {
 //              println("Warning: NaN gradients detected!") // 警告：检测到NaN梯度！
 //    }
 
-    //05
+    // 05
 
-
-
-    def print_grad_hook[D <:DType](grad: Tensor[D]): Unit={
+    def print_grad_hook[D <: DType](grad: Tensor[D]): Unit = {
       println(f"Gradient received: shape=${grad.shape}, norm=${grad.norm()}")
     }
 
@@ -149,13 +149,13 @@ object lesson_09_2 {
 //    hook_handle.remove()
     x4.remove_hook(hook_handle)
     // 你也可以在hook中修改梯度，但请谨慎使用：
-    def scale_grad_hook[D <:DType](grad: Tensor[D]): Tensor[D]={
+    def scale_grad_hook[D <: DType](grad: Tensor[D]): Tensor[D] = {
       // 示例：将梯度减半
       println(f"原始梯度: ${grad} 将梯度减半 ")
       val tensor = grad * 0.5
       tensor.to(grad.dtype)
     }
-    val scaleGradHook = new TensorTensorHook{
+    val scaleGradHook = new TensorTensorHook {
       override def call(grad: TensorBase): TensorBase = {
         scale_grad_hook(fromNative(NativeTensor(grad))).native
       }
@@ -165,15 +165,18 @@ object lesson_09_2 {
 //    x4.register_hook(scaleGradHook)
 //    y4.backward() // 现在存储在x.grad中的梯度将减半
 
-
-    //06
+    // 06
     val model = SimpleNetzs()
-    val input_tensor = torch.randn( Seq(4, 10), requires_grad = true)
+    val input_tensor = torch.randn(Seq(4, 10), requires_grad = true)
 
-    def backward_hook[D <:DType](module: nn.Module, grad_input: Seq[Tensor[D]], grad_output: Seq[Tensor[D]]):Unit ={
+    def backward_hook[D <: DType](
+        module: nn.Module,
+        grad_input: Seq[Tensor[D]],
+        grad_output: Seq[Tensor[D]]
+    ): Unit = {
       println(f"\nModule: {module.__class__.__name__}")
-      grad_input.foreach{g => println(f"  grad_input shape: ${g.shape}")}
-      grad_output.foreach{g => println(f"  grad_output shape: ${g.shape}")}
+      grad_input.foreach { g => println(f"  grad_input shape: ${g.shape}") }
+      grad_output.foreach { g => println(f"  grad_output shape: ${g.shape}") }
     }
     // 在linear2层上注册hook
 //    val hook_handle_bwd = model.linear2.register_full_backward_hook(backward_hook) //todo register_full_backward_hook
@@ -192,10 +195,12 @@ object lesson_09_2 {
     // 清理hook
 //    hook_handle_bwd.remove()
 
-    //07
+    // 07
     import torch.utils.tensorboard.SummaryWriter
 
-    class SimpleNetk[ParamType <: FloatNN : Default] extends TensorModule[ParamType] with HasParams[ParamType] {
+    class SimpleNetk[ParamType <: FloatNN: Default]
+        extends TensorModule[ParamType]
+        with HasParams[ParamType] {
 
       val layer1 = nn.Linear(5, 3)
       val relu = nn.ReLU()
@@ -219,23 +224,23 @@ object lesson_09_2 {
 //    writer.add_graph(model_02, dummy_input) //todo SummaryWriter add_graph
 //    writer.close()
 
-
-    //08
+    // 08
     // 创建一个张量；PyTorch分配存储空间
     val x_08 = torch.randn(2, 3)
     println(f"x_08 storage: ${x_08.storage().data_ptr()}")
 
     // 切片操作会创建一个共享存储的新张量视图
-    val y_08 = x_08(0,::)
+    val y_08 = x_08(0, ::)
     println(f"y_08 storage: ${y_08.storage().data_ptr()}") // 相同的指针
-    println(f"Do x_08 and y_08 share storage? ${x_08.storage().data_ptr() == y_08.storage().data_ptr()}")
+    println(
+      f"Do x_08 and y_08 share storage? ${x_08.storage().data_ptr() == y_08.storage().data_ptr()}"
+    )
 
     // 修改y会影响x，因为它们共享存储
     y_08.fill_(1.0)
     println(s"修改y_08后x_08的值：\n ${x_08}")
 
-
-    //09
+    // 09
     // 连续张量
     val a = torch.arange(6).reshape(2, 3)
     println(f"a is contiguous: ${a.is_contiguous()}, Stride: ${a.strides()}") // 步长: (3, 1)
@@ -246,8 +251,7 @@ object lesson_09_2 {
     println("b:\n $b")
     // 某些PyTorch函数需要连续张量
     // 尝试对非连续张量进行view等操作可能会失败
-    try
-      b.view(-1)
+    try b.view(-1)
     catch
       case e: RuntimeException =>
         println(f"\nError viewing non-contiguous tensor: ${e}")
@@ -255,10 +259,11 @@ object lesson_09_2 {
     val c = b.contiguous()
     println(f"c is contiguous: ${c.is_contiguous()}, Stride: ${c.strides()}") // 步长: (2, 1)
     println(s"c (contiguous version of b):\n $c")
-    println(f"Does b and c share storage? ${b.storage().data_ptr() == c.storage().data_ptr()}") // 否，新的存储空间
+    println(
+      f"Does b and c share storage? ${b.storage().data_ptr() == c.storage().data_ptr()}"
+    ) // 否，新的存储空间
 
-
-    //10 //todo cuda 内存管理
+    // 10 //todo cuda 内存管理
 //    if torch.cuda.is_available() then
 //      val device = torch.Device("cuda")
 //      println(f"Initial allocated: ${torch.cuda.memory_allocated(device) / 1024**2:.2f} MiB")
@@ -288,14 +293,14 @@ object lesson_09_2 {
 //    else
 //      println("CUDA不可用，跳过GPU内存示例。")
 
-    //11
+    // 11
     // 设置
     val ax = torch.randn(Seq(100, 100), requires_grad = true)
     val bx = torch.randn(Seq(100, 100), requires_grad = true)
 
     // 被自动求导跟踪的操作
     val cx = ax * bx
-    val dx = cx.sin() //fromNative(cx.native.sin())
+    val dx = cx.sin() // fromNative(cx.native.sin())
     val loss_x = dx.mean()
 
     // 中间张量'cx'和'dx'被保留在内存中
@@ -304,7 +309,7 @@ object lesson_09_2 {
     loss_x.backward() // 计算a和b的梯度
 
     // 现在，让我们尝试不跟踪梯度
-    torch.no_grad{
+    torch.no_grad {
       val c_no_grad = ax * bx // 操作已执行，但未被跟踪
       val d_no_grad = c_no_grad.sin() // fromNative(c_no_grad.native.sin()) //
 //      c_no_grad.sin

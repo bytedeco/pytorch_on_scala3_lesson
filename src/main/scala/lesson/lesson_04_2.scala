@@ -1,7 +1,5 @@
 package lesson
 
-
-
 import torch.{Tensor, *}
 import torch.nn.modules.{HasParams, TensorModule}
 import torch.nn.{modules, functional as F}
@@ -9,9 +7,11 @@ import scala.collection.mutable.SortedMap as OrderedDict
 import scala.collection.{mutable, Set as KeySet}
 
 // 定义网络结构
-class SimpleNets[ParamType <: FloatNN: Default](input_size: Int, hidden_size: Int, output_size: Int) extends TensorModule[ParamType]  with HasParams[ParamType] {
+class SimpleNets[ParamType <: FloatNN: Default](input_size: Int, hidden_size: Int, output_size: Int)
+    extends TensorModule[ParamType]
+    with HasParams[ParamType] {
 
-  //初始化父类
+  // 初始化父类
   val layer_1 = nn.Linear(input_size, hidden_size)
   val relu = nn.ReLU()
   val layer_2 = nn.Linear(hidden_size, output_size)
@@ -19,12 +19,12 @@ class SimpleNets[ParamType <: FloatNN: Default](input_size: Int, hidden_size: In
   override def apply(x: Tensor[ParamType]): Tensor[ParamType] = forward(x)
 
   def forward(input: Tensor[ParamType]): Tensor[ParamType] = {
-      // 定义前向传播
-      var x = layer_1(input)
-      x = relu(x)
-      x = layer_2(x)
-      // 注意：如果后续使用BCEWithLogitsLoss，这里不应用Sigmoid
-      x
+    // 定义前向传播
+    var x = layer_1(input)
+    x = relu(x)
+    x = layer_2(x)
+    // 注意：如果后续使用BCEWithLogitsLoss，这里不应用Sigmoid
+    x
   }
 }
 
@@ -33,7 +33,7 @@ object lesson_04_2 {
 //  @main
   def main(): Unit = {
 
-    //08
+    // 08
     // 定义网络参数
     val input_features = 2
     val hidden_units = 10
@@ -45,7 +45,7 @@ object lesson_04_2 {
     // 打印模型结构
     println(model_08)
 
-    //09
+    // 09
     // --- 数据准备（示例占位符）---
     // 假设我们有一些输入数据(X)和目标标签(y)
     // 对于此示例，我们创建一些虚拟张量
@@ -69,8 +69,7 @@ object lesson_04_2 {
     println(s"\n使用的损失函数: $criterion")
     println(s"使用的优化器: $optimizer_09")
 
-
-    //10
+    // 10
     // --- 模拟单个训练步骤 ---
 
     // 1. 前向传播：获取模型预测（logits）
@@ -97,9 +96,9 @@ object lesson_04_2 {
 
     // 或者在步骤后检查参数值
     println("\n更新后的layer_1权重（示例）：")
-    println(model_08.layer_1.weight(0,::))
+    println(model_08.layer_1.weight(0, ::))
 
-    //07
+    // 07
     // --- 训练循环外部 ---
     // 示例：多类别分类
     val num_classes = 10
@@ -112,9 +111,9 @@ object lesson_04_2 {
 
     // --- 训练循环内部 ---
     model.train() // 将模型设置为训练模式
-    dummy_dataloader.zipWithIndex.foreach{
-      (data_target,batch_idx) =>{
-        val (data,target) = data_target
+    dummy_dataloader.zipWithIndex.foreach { (data_target, batch_idx) =>
+      {
+        val (data, target) = data_target
         println(f"Batch ${batch_idx}, data: ${data}")
         println(f"Batch ${batch_idx}, target: ${target}")
         // 1. 清零梯度
@@ -136,8 +135,7 @@ object lesson_04_2 {
       }
     }
 
-
-    //08
+    // 08
     // 假设 'model' 是你的 nn.Module 子类的一个实例
     // 示例：使用随机梯度下降 (SGD)
     val optimizer_01 = optim.SGD(model.parameters(true), lr = 0.01)
@@ -146,28 +144,30 @@ object lesson_04_2 {
     val optimizer_02 = optim.Adam(model.parameters(true), lr = 0.001)
 
     // 带有动量和权重衰减的 SGD
-    val optimizer_03 = optim.SGD(model.parameters(true), lr = 0.01, momentum = 0.9, weight_decay = 1e-4)
+    val optimizer_03 =
+      optim.SGD(model.parameters(true), lr = 0.01, momentum = 0.9, weight_decay = 1e-4)
 
     // 带有默认 betas 和指定学习率的 Adam
     val optimizer_04 = optim.Adam(model.parameters(true), lr = 0.001)
 
     // 带有自定义 betas 和权重衰减的 Adam
-    val optimizer_05= optim.Adam(model.parameters(true), lr = 0.001, betas = (0.9, 0.999), weight_decay = 1e-5)
+    val optimizer_05 =
+      optim.Adam(model.parameters(true), lr = 0.001, betas = (0.9, 0.999), weight_decay = 1e-5)
 
-    //06
+    // 06
     // 实例化二元交叉熵损失函数
     val loss_fn_bce_logits = nn.BCEWithLogitsLoss()
 
     // 示例：包含 4 个样本的批次，1 个输出节点（二元分类）
     val predictions_logits_bin = torch.randn(Seq(4, 1), requires_grad = true) // 原始 logits
     // 目标应为浮点数（0.0 或 1.0）
-    val targets_bin = torch.tensor(Seq(1.0, 0.0, 0.0, 1.0)).view(4,-1) // 4 个样本的目标
+    val targets_bin = torch.tensor(Seq(1.0, 0.0, 0.0, 1.0)).view(4, -1) // 4 个样本的目标
 
     // 计算损失
     val loss_bce = loss_fn_bce_logits(predictions_logits_bin, targets_bin)
     println(f"BCE With Logits Loss: ${loss_bce.item()}")
 
-    //05
+    // 05
     // 实例化交叉熵损失函数
     val loss_fn_ce = nn.CrossEntropyLoss()
     // 示例：包含 3 个样本的批次，5 个类别
@@ -182,19 +182,17 @@ object lesson_04_2 {
     loss_ce.backward()
     println(predictions_logits.grad)
 
-
-    //04
+    // 04
     val loss_fn_l1 = nn.L1Loss()
     // 示例预测值和目标值（批大小为 3，1 个输出特征）
-    val predictions_04 = torch.tensor(Seq(Seq(1.0), Seq(2.5), Seq(0.0)), requires_grad=true)
+    val predictions_04 = torch.tensor(Seq(Seq(1.0), Seq(2.5), Seq(0.0)), requires_grad = true)
     val targets_04 = torch.tensor(Seq(Seq(1.2), Seq(2.2), Seq(0.5)))
     // 计算损失
     val loss_l1 = loss_fn_l1(predictions_04, targets_04)
     println(f"L1 Loss: ${loss_l1.item()}") // |1-1.2|, |2.5-2.2|, |0-0.5| 的平均值
     // (0.2 + 0.3 + 0.5) / 3 = 1.0 / 3 = 0.333...
 
-
-    //03
+    // 03
     // 实例化均方误差损失函数
     val loss_fn_03 = nn.MSELoss()
 
@@ -210,10 +208,8 @@ object lesson_04_2 {
     loss_03.backward()
     println(predictions.grad)
 
-
-
-    //01
-    //定义输入、隐藏层和输出维度
+    // 01
+    // 定义输入、隐藏层和输出维度
     val input_size = 784
     val hidden_size = 128
     val output_size = 10
@@ -235,8 +231,7 @@ object lesson_04_2 {
     val output_02 = model_v1(dummy_input_02)
     println(s"\nOutput shape:  ${output_02.shape}") // 预期：torch.Size([64, 10])
 
-
-    //02
+    // 02
     // 方法2：使用OrderedDict进行命名层
     val layerDict: OrderedDict[String, TensorModule[Float32]] = OrderedDict(
       "fc1" -> nn.Linear(input_size, hidden_size), // 全连接层1
@@ -257,7 +252,6 @@ object lesson_04_2 {
 //    println(s"Accessing layer at index 0:${model_v2(0)}")
     //    // 或者如果使用OrderedDict，直接通过字符串名称访问
     //    println(s"Accessing layer by name 'relu1':${model_v2.relu1}")
-
 
   }
 }

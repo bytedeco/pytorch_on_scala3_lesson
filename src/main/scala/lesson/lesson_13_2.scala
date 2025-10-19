@@ -12,7 +12,8 @@ import torch.{BFloat16, Tensor, *}
 // dist.init_process_group(backend="nccl")
 // torch.cuda.set_device(local_rank) // local_rank 通常获取
 
-class LargeTransformerBlock[ParamType <: FloatNN: Default](dim: Int, ff_dim: Int) extends TensorModule[ParamType] {
+class LargeTransformerBlock[ParamType <: FloatNN: Default](dim: Int, ff_dim: Int)
+    extends TensorModule[ParamType] {
   // 子模块定义示例
   val layer_norm = nn.LayerNorm(dim)
   val attention = nn.MultiheadAttention(dim, num_heads = 8) // Simplified
@@ -31,7 +32,12 @@ class LargeTransformerBlock[ParamType <: FloatNN: Default](dim: Int, ff_dim: Int
   }
 
 }
-class BigModel[ParamType <: FloatNN: Default](num_layers: Int, dim: Int, ff_dim: Int, vocab_size: Int) extends TensorModule[ParamType] {
+class BigModel[ParamType <: FloatNN: Default](
+    num_layers: Int,
+    dim: Int,
+    ff_dim: Int,
+    vocab_size: Int
+) extends TensorModule[ParamType] {
   // 子模块定义示例
   val embedding = nn.Embedding(vocab_size, dim)
   val layers = nn.ModuleList(
@@ -42,7 +48,7 @@ class BigModel[ParamType <: FloatNN: Default](num_layers: Int, dim: Int, ff_dim:
 
   def forward(input: Tensor[ParamType]): Tensor[ParamType] = {
     var x = embedding(input)
-    for(layer <- layers){
+    for (layer <- layers) {
       x = layer(x)
     }
     x = output_head(x)
@@ -63,10 +69,12 @@ class ToyModel[ParamType <: FloatNN: Default] extends TensorModule[ParamType] {
 
 }
 
-class ToyDataset[Input <: BFloat16 | FloatNN: Default, Target <: BFloat16 | FloatNN: Default](num_samples: Int = 100) extends Dataset[Input, Target] {
+class ToyDataset[Input <: BFloat16 | FloatNN: Default, Target <: BFloat16 | FloatNN: Default](
+    num_samples: Int = 100
+) extends Dataset[Input, Target] {
 
   val features = torch.randn(num_samples, 10)
-  val labels = torch.randn(num_samples, 1).to(dtype =implicitly[Default[Target]].dtype)
+  val labels = torch.randn(num_samples, 1).to(dtype = implicitly[Default[Target]].dtype)
 
   override def get_batch(request: Long*): ExampleVector = ???
 //  override def features: Tensor[Input] = features
@@ -74,7 +82,7 @@ class ToyDataset[Input <: BFloat16 | FloatNN: Default, Target <: BFloat16 | Floa
 
   override def length: Long = num_samples
 
-  override def getItem(idx:  Int): (Tensor[Input], Tensor[Target]) = (features(idx), labels(idx))
+  override def getItem(idx: Int): (Tensor[Input], Tensor[Target]) = (features(idx), labels(idx))
 
   override def iterator: Iterator[(Tensor[Input], Tensor[Target])] = ???
 
@@ -83,8 +91,5 @@ class ToyDataset[Input <: BFloat16 | FloatNN: Default, Target <: BFloat16 | Floa
 //--- 模拟结束 ---
 object lesson_13_2 {
 
-
-  def main():Unit={
-
-  }
+  def main(): Unit = {}
 }

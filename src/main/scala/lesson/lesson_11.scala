@@ -1,32 +1,19 @@
 package lesson
-//
-//import org.bytedeco.javacpp.{FloatPointer, PointerScope}
-//import org.bytedeco.pytorch
-import org.bytedeco.pytorch.global.torch as torchNative
-import torch.Device.{CPU, CUDA}
-import torch.internal.NativeConverters.{fromNative, toNative}
+
 import torch.nn.modules.{HasParams, TensorModule}
 import torch.nn.{modules, functional as F}
 import torch.numpy.TorchNumpy as np
 import torch.optim.{Adam, AdamW, SGD}
 import torch.optim.lr_scheduler.{CosineAnnealingLR, CosineAnnealingWarmRestarts, LambdaLR}
-import torch.utils.data.dataloader.*
-import torch.utils.data.datareader.ChunkDataReader
-import torch.utils.data.dataset.*
-import torch.utils.data.dataset.custom.{FashionMNIST, MNIST}
-import torch.utils.data.sampler.RandomSampler
-import torch.utils.data.*
 import torch.{Tensor, *}
 import torch.nn
-
-import java.net.URL
-import java.nio.file.{Files, Path, Paths}
-import java.util.zip.GZIPInputStream
 import scala.collection.mutable.{ListBuffer, SortedMap as OrderedDict}
 import scala.collection.{mutable, Set as KeySet}
 import scala.util.*
 
-class MyResidualBlock[ParamType <: FloatNN: Default](dim: Int, drop_prob: Double = 0)  extends TensorModule[ParamType]  with HasParams[ParamType] {
+class MyResidualBlock[ParamType <: FloatNN: Default](dim: Int, drop_prob: Double = 0)
+    extends TensorModule[ParamType]
+    with HasParams[ParamType] {
 
   val norm1 = nn.LayerNorm(dim)
   val linear1 = nn.Linear(dim, dim * 4)
@@ -44,7 +31,7 @@ class MyResidualBlock[ParamType <: FloatNN: Default](dim: Int, drop_prob: Double
     x = activation(x)
     x = linear2(x)
     // 将 DropPath 应用于残差函数的输出
-    x = shortcut + x //drop_path(x)
+    x = shortcut + x // drop_path(x)
     x
   }
 }
@@ -53,7 +40,6 @@ class MyResidualBlock[ParamType <: FloatNN: Default](dim: Int, drop_prob: Double
 // drop_probabilities = torch.linspace(0, 0.1, num_layers) // 线性衰减
 // block = MyResidualBlock(dim=embed_dim, drop_prob=drop_probabilities(i).item())
 object lesson_11 {
-
 
   def mainz(): Unit = {
 
@@ -67,9 +53,8 @@ object lesson_11 {
     val cosine_epochs = total_epochs - warmup_epochs
 
     // 调度器1：线性预热
-    val lr_lambda_warmup: (Int) => Float = (current_epoch: Int) =>  {
-      if current_epoch < warmup_epochs then
-        return (current_epoch + 1) / math.max(1, warmup_epochs)
+    val lr_lambda_warmup: (Int) => Float = (current_epoch: Int) => {
+      if current_epoch < warmup_epochs then return (current_epoch + 1) / math.max(1, warmup_epochs)
       else
         // 预热结束后，让余弦调度器间接接管
         // 我们计算相对于预热阶段结束的衰减因子
@@ -80,18 +65,15 @@ object lesson_11 {
     val scheduler = LambdaLR(optimizer, lr_lambda = Left(lr_lambda_warmup))
     // 模拟训练循环
     val lrs_warmup_cosine = ListBuffer[Float]()
-    for( epoch <- (0 until total_epochs + 20)) { // 模拟稍长一点的时间
-        // optimizer.step()
+    for (epoch <- (0 until total_epochs + 20)) { // 模拟稍长一点的时间
+      // optimizer.step()
       lrs_warmup_cosine.append(optimizer.param_groups(0).paramGroupDict("lr").asInstanceOf[Float])
       scheduler.step()
     }
 
-
-
   }
 
-
-  def mains():Unit ={
+  def mains(): Unit = {
 
     // 假设模型、优化器、数据加载器已定义
     val model = nn.Linear(10, 1) // 示例模型
@@ -111,9 +93,9 @@ object lesson_11 {
 
     model.train()
     optimizer.zero_grad()
-    //在循环前将梯度初始化为零
+    // 在循环前将梯度初始化为零
 
-    for (((inputs, targets),index) <- data_loader.zipWithIndex){
+    for (((inputs, targets), index) <- data_loader.zipWithIndex) {
       val outputs = model(inputs.to(torch.float32))
       val loss = nn.functional.mse_loss(outputs, targets.to(torch.float32))
 
@@ -139,7 +121,6 @@ object lesson_11 {
 
   }
 
-
   //  @main
   def main(): Unit = {
 
@@ -152,7 +133,7 @@ object lesson_11 {
 
     var total_norm = 0.0
     model.train()
-    for ((inputs, targets) <- data_loader){
+    for ((inputs, targets) <- data_loader) {
       optimizer.zero_grad()
 
       val outputs = model(inputs.to(torch.float32))
@@ -168,8 +149,6 @@ object lesson_11 {
       optimizer.step() // 更新权重
     }
     println(s"训练步骤完成。潜在裁剪前的梯度范数: ${total_norm}")
-
-
 
     // 假设 'model' 是你的 nn.Module 实例
     // AdamW 使用示例
@@ -191,7 +170,7 @@ object lesson_11 {
     // 使用 Lookahead 封装
 //    val optimizer_head = Lookahead(base_optimizer, la_steps = 5, la_alpha = 0.5)
 
-    //02
+    // 02
     // 示例设置
     val model_params = torch.randn(Seq(10, 5), requires_grad = true)
 
@@ -202,16 +181,14 @@ object lesson_11 {
 
     // 模拟训练循环以可视化学习率变化
     val lrs = ListBuffer[Float]()
-    for(epoch <- (1 to 150)) {// 模拟超过T_max的epoch数 
+    for (epoch <- (1 to 150)) { // 模拟超过T_max的epoch数
       // optimizer.step() // 通常在loss.backward()之后调用
       lrs.append(optimizer3.param_groups(0).paramGroupDict("lr").asInstanceOf[Float])
       scheduler.step()
     }
 
-
-
     // 示例设置
-    val model_params3 = torch.randn( Seq(10, 5), requires_grad = true)
+    val model_params3 = torch.randn(Seq(10, 5), requires_grad = true)
 
     val optimizer4 = AdamW(Seq(model_params), lr = 0.01) // 初始学习率
 
@@ -224,14 +201,13 @@ object lesson_11 {
     // 模拟训练循环
     val lrs_restarts = ListBuffer[Float]()
     val num_epochs = 300 // T_0 + T_0*T_mult + T_0*T_mult*T_mult = 50 + 100 + 200 = 350
-    for(epoch <- (0 until num_epochs)) {// 模拟超过T_max的epoch数
+    for (epoch <- (0 until num_epochs)) { // 模拟超过T_max的epoch数
       // optimizer.step()
       val firstParamGroup = optimizer4.param_groups(0)
       val lr = firstParamGroup.paramGroupDict("lr")
       lrs_restarts.append(optimizer4.param_groups(0).paramGroupDict("lr").asInstanceOf[Float])
       scheduler.step()
     }
-
 
   }
 }

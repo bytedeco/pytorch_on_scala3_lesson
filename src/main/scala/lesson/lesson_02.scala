@@ -10,7 +10,7 @@ object lesson_02 {
 //  @main
   def mains(): Unit = {
 
-    //17
+    // 17
     // 创建一个张量
     val tensor_h = torch.arange(10).reshape(5, 2) // 沿着维度0的大小为5
     println(f"原始张量 (形状: ${tensor_h.shape}):\n ${tensor_h}\n")
@@ -19,7 +19,7 @@ object lesson_02 {
     // 5行 / 3块 -> 大小将是 [2, 2, 1] （前几个块取 ceil(5/3)=2）
     val chunked_tensor = torch.chunk(tensor_h, 3, dim = 0)
     println("分割成3个部分（dim=0）:")
-    chunked_tensor.zipWithIndex.foreach{ case (chunk, i) =>
+    chunked_tensor.zipWithIndex.foreach { case (chunk, i) =>
       println(f" 块 ${i} (形状: ${chunk.shape}):\n ${chunk}")
     }
 
@@ -33,11 +33,11 @@ object lesson_02 {
     // 4列 / 2块 -> 大小将是 [2, 2] （ceil(4/2)=2）
     val chunked_tensor_dim1 = torch.chunk(tensor_i, 2, dim = 1)
     println("分割成2个部分（dim=1）:")
-    chunked_tensor_dim1.zipWithIndex.foreach{ case (chunk, i) =>
+    chunked_tensor_dim1.zipWithIndex.foreach { case (chunk, i) =>
       println(f" 块 ${i} (形状: ${chunk.shape}):\n ${chunk}")
     }
 
-    //16
+    // 16
     // 创建一个要分割的张量
     val tensor_g = torch.arange(12).reshape(6, 2)
     println(f"原始张量 (形状: ${tensor_g.shape}):\n ${tensor_g}\n")
@@ -46,7 +46,7 @@ object lesson_02 {
     // 6行 / 2行/块 = 3块
     val split_equal = torch.split(tensor_g, 2, dim = 0)
     println("分割成大小为2的等份（dim=0）:")
-    split_equal.zipWithIndex.foreach{ case (chunk, i) =>
+    split_equal.zipWithIndex.foreach { case (chunk, i) =>
       println(f" 块 ${i} (形状: ${chunk.shape}):\n ${chunk}")
     }
 
@@ -56,7 +56,7 @@ object lesson_02 {
     // 总大小必须等于该维度的大小 (1 + 2 + 3 = 6)
     val split_unequal = torch.split(tensor_g, List(1, 2, 3), dim = 0)
     println("\n分割成大小不等的块 [1, 2, 3]（dim=0）:")
-    split_unequal.zipWithIndex.foreach{ case (chunk, i) =>
+    split_unequal.zipWithIndex.foreach { case (chunk, i) =>
       println(f" 块 ${i} (形状: ${chunk.shape}):\n ${chunk}")
     }
 
@@ -66,15 +66,14 @@ object lesson_02 {
     // 形状: (6, 2)。沿着维度1按大小1分割成块
     val split_dim1 = torch.split(tensor_g, 1, dim = 1)
     println("\n分割成大小为1的等份（dim=1）:")
-    split_dim1.zipWithIndex.foreach{ case (chunk, i) =>
+    split_dim1.zipWithIndex.foreach { case (chunk, i) =>
       // 使用 squeeze 移除大小为1的维度，以便更清晰地显示
-        println(f" 块 ${i} (形状: ${chunk.shape}):\n ${chunk.squeeze()}")
+      println(f" 块 ${i} (形状: ${chunk.shape}):\n ${chunk.squeeze()}")
     }
 
-
-    //15
+    // 15
     // 创建两个形状相同的张量
-    val tensor_e = torch.arange(start = 0, end =6).reshape(2, 3)
+    val tensor_e = torch.arange(start = 0, end = 6).reshape(2, 3)
     val tensor_f = torch.arange(start = 6, end = 12).reshape(2, 3)
     println(f"Tensor E (Shape: ${tensor_e.shape}):\n ${tensor_e}")
     println(f"Tensor F (Shape: ${tensor_f.shape}):\n ${tensor_f}\n")
@@ -94,7 +93,7 @@ object lesson_02 {
     val stack_dim2 = torch.stack(Seq(tensor_e, tensor_f), dim = 2)
     println(f"沿着新维度2堆叠 (形状: ${stack_dim2.shape}):\n ${stack_dim2}")
 
-    //14
+    // 14
     // 创建两个张量
     val tensor_a = torch.randn(2, 3)
     val tensor_b = torch.randn(2, 3)
@@ -120,9 +119,7 @@ object lesson_02 {
     val cat_3d_dim0 = torch.cat(Seq(tensor_c, tensor_d), dim = 0)
     println(f"\n3D张量沿着维度0拼接 (形状: ${cat_3d_dim0.shape})")
 
-
-
-    //12
+    // 12
     // 创建一个三维张量（例如，表示通道、高、宽）
     val image_tensor = torch.randn(3, 32, 32) // 通道，高，宽
     println(f"原始形状: ${image_tensor.shape}") // torch.Size([3, 32, 32])
@@ -140,9 +137,11 @@ object lesson_02 {
     println(f"original_again 是否连续? ${original_again.is_contiguous}") // （可能仍然是非连续的）
 
     // 检查存储共享
-    println(f"与原始张量共享存储吗? ${original_again.storage().data_ptr() == image_tensor.storage().data_ptr()}")
+    println(
+      f"与原始张量共享存储吗? ${original_again.storage().data_ptr() == image_tensor.storage().data_ptr()}"
+    )
 
-    //13
+    // 13
     // 使调整维度的张量连续
     val contiguous_permuted = permuted_tensor.contiguous()
     println(f"\ncontiguous_permuted 是否连续? ${contiguous_permuted.is_contiguous}")
@@ -151,19 +150,19 @@ object lesson_02 {
     val flattened_permuted = contiguous_permuted.view(-1)
     println(f"展平后的形状: ${flattened_permuted.shape}")
 
-    //10
+    // 10
     // view() 在非连续张量上失败的例子
     val a = torch.arange(12).view(3, 4)
     val b = a.t() // 转置操作会创建一个非连续张量
     println(f"\nb 是否连续? ${b.is_contiguous}")
 
-    try
+    try {
       val c = b.view(12)
-    catch
+    } catch
       case e: RuntimeException =>
         println(f"\n尝试 b.view(12) 时出错: {e}")
 
-    //11
+    // 11
     // 在非连续张量 'b' 上使用 reshape()
     println(f"\n原始非连续张量 b:\n ${b}")
     println(f"b 的形状: ${b.shape}")
@@ -184,11 +183,7 @@ object lesson_02 {
     println(f"d 的形状: ${d.shape}")
     println(f"d 是否连续? ${d.is_contiguous}")
 
-
-
-
-
-    //09
+    // 09
     // 创建一个连续张量
     val x2 = torch.arange(12) // tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])
     println(f"原始张量: ${x2}")
@@ -211,13 +206,12 @@ object lesson_02 {
     println(f"与 x2 共享存储吗? ${z.storage().data_ptr() == x2.storage().data_ptr()}")
     println(f"z 是否连续? ${z.is_contiguous}")
 
-
-    //08
+    // 08
     val x = torch.arange(start = 10, end = 20) // Tensor([10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
     println(f"原始一维张量: \n ${x}")
 
     // 注意索引2的重复
-    val indices = torch.tensor(Seq(0, 4, 2, 2),dtype = torch.int32)
+    val indices = torch.tensor(Seq(0, 4, 2, 2), dtype = torch.int32)
     println(f"\n使用索引 ${indices} 选择的元素: \n ${x(indices)}")
 
     // 对于二维张量
@@ -228,23 +222,22 @@ object lesson_02 {
     println(f"\n原始二维张量:\n ${y}")
 
     // 选择特定行
-    val row_indices = torch.tensor(Seq(0, 2),dtype = torch.int32)
+    val row_indices = torch.tensor(Seq(0, 2), dtype = torch.int32)
     val selected_rows = y(row_indices, ---)
     println(f"\n使用索引 ${row_indices} 选择的行:\n ${selected_rows}")
 
     // 选择特定列
-    val col_indices = torch.tensor(Seq(1, 3),dtype = torch.int32)
+    val col_indices = torch.tensor(Seq(1, 3), dtype = torch.int32)
     val selected_cols = y(---, col_indices) // 从所有行中选择第1列和第3列
     println(f"\n使用索引 ${col_indices} 选择的列:\n ${selected_cols}")
 
     // 使用索引对选择特定元素
-    val row_idx = torch.tensor(Seq(0, 1, 2),dtype = torch.int32)
-    val col_idx = torch.tensor(Seq(1, 3, 0),dtype = torch.int32)
+    val row_idx = torch.tensor(Seq(0, 1, 2), dtype = torch.int32)
+    val col_idx = torch.tensor(Seq(1, 3, 0), dtype = torch.int32)
     val selected_elements2 = y(row_idx, col_idx) // 选择 (0,1), (1,3), (2,0) -> [1, 7, 8]
     println(f"\n使用 (row_idx, col_idx) 选择的特定元素:\n ${selected_elements2}")
 
-
-    //01
+    // 01
     val x_1d = torch.tensor(Seq(10, 11, 12, 13, 14))
     println(f"原始一维张量:\n ${x_1d}")
 
@@ -258,14 +251,11 @@ object lesson_02 {
 
     // 修改一个元素
 //    x_1d(1) = 110
-    x_1d.update(Seq(1),110)
+    x_1d.update(Seq(1), 110)
     println(f"\n修改后的张量:\n ${x_1d}")
 
-
-    //02
-    val x_2d = torch.tensor(Seq(Seq(1, 2, 3),
-      Seq(4, 5, 6),
-      Seq(7, 8, 9)))
+    // 02
+    val x_2d = torch.tensor(Seq(Seq(1, 2, 3), Seq(4, 5, 6), Seq(7, 8, 9)))
     println(f"原始二维张量:\n ${x_2d}")
 
     // 访问第0行第1列的元素
@@ -282,24 +272,23 @@ object lesson_02 {
 
     // 修改一个元素
 //    x_2d(1, 1) = 55
-    x_2d.update(Seq(1, 1),55)
+    x_2d.update(Seq(1, 1), 55)
     println(f"\n修改后的二维张量:\n ${x_2d}")
 
-
-    //03
+    // 03
     val y_1d = torch.arange(10) // Tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     println(f"原始一维张量: ${y_1d}")
 
     // 选择从索引2开始到（不包含）索引5的元素
-    val slice1 = y_1d(2.::(5)) //y_1d(2 until 5)
+    val slice1 = y_1d(2.::(5)) // y_1d(2 until 5)
     println(f"\n切片 y_1d(2 until 5): ${slice1}")
 
     // 选择从开头到索引4的元素
-    val slice2 = y_1d(0.::(4)) //(0 until 4)
+    val slice2 = y_1d(0.::(4)) // (0 until 4)
     println(f"切片 y_1d(0 until 4): ${slice2}")
 
     // 选择从索引6到末尾的元素
-    val slice3 = y_1d(6.::(y_1d.size(0))) //(6 until y_1d.size(0))
+    val slice3 = y_1d(6.::(y_1d.size(0))) // (6 until y_1d.size(0))
     println(f"切片 y_1d(6 until y_1d.size(0)): ${slice3}")
 
     // 选择每隔一个的元素
@@ -312,7 +301,7 @@ object lesson_02 {
 //    val slice51 = y_1d(1.::(8).by(2)) //(1 until 8 by 2)
 //    println(f"切片 y_1d(1 until 8 by 2): ${slice5}")
 
-    val slice52 = y_1d(1.untils(8)) //(1 until 8 by 2)
+    val slice52 = y_1d(1.untils(8)) // (1 until 8 by 2)
     println(f"切片 y_1d(1 until 8 by 2): ${slice52}")
 //
 //    // 反转张量
@@ -320,45 +309,41 @@ object lesson_02 {
 //    val slice61 = y_1d((y_1d.size(0) - 1).by(-1)) //todo here have a problem
 //    println(f"切片 y_1d(y_1d.size(0) - 1 until 0 by -1): ${slice61}")
 
-
-  //04
-    val x_2d2 = torch.tensor(Seq(Seq(0, 1, 2, 3),
-    Seq(4, 5, 6, 7),
-    Seq(8, 9, 10, 11)))
+    // 04
+    val x_2d2 = torch.tensor(Seq(Seq(0, 1, 2, 3), Seq(4, 5, 6, 7), Seq(8, 9, 10, 11)))
     println(f"原始二维张量:\n ${x_2d2}")
 
     // 选择前两行以及第1和第2列
-    val sub_tensor1 = x_2d2(0.::(2), 1.::(3))  //(0 until 2, 1 until 3)
+    val sub_tensor1 = x_2d2(0.::(2), 1.::(3)) // (0 until 2, 1 until 3)
     println(f"\n切片 x_2d2(0 until 2, 1 until 3):\n ${sub_tensor1}")
 
     // 选择所有行，但只选择最后两列
-    val sub_tensor2 = x_2d2 (---, -2.::(x_2d2.size(1)))//(*, -2 until x_2d2.size(1))
+    val sub_tensor2 = x_2d2(---, -2.::(x_2d2.size(1))) // (*, -2 until x_2d2.size(1))
     println(f"\n切片 x_2d2(*, -2 until x_2d2.size(1)):\n ${sub_tensor2}")
 
     // 选择第一行，从第1列到末尾
-    val sub_tensor3 = x_2d2 (0, 1.::(x_2d2.size(1)))//(0, 1 until x_2d2.size(1))
+    val sub_tensor3 = x_2d2(0, 1.::(x_2d2.size(1))) // (0, 1 until x_2d2.size(1))
     println(f"\n切片 x_2d2(0, 1 until x_2d2.size(1)):\n ${sub_tensor3}")
 
     // 选择第0行和第2行（使用步长），所有列
 //    val sub_tensor4 = x_2d2(0.::(x_2d2.size(0)).by(2), *) //(0 until x_2d2.size(0) by 2, *)
-    val sub_tensor41 = x_2d2(0.by(2), ---) //(0 until x_2d2.size(0) by 2, *)
+    val sub_tensor41 = x_2d2(0.by(2), ---) // (0 until x_2d2.size(0) by 2, *)
     println(f"\n切片 x_2d2(0 until x_2d2.size(0) by 2, *):\n ${sub_tensor41}")
 
-  //05
+    // 05
     println(f"修改切片前的原始 x_2d:\n ${x_2d2}")
 
     // 获取一个切片
-    val sub_tensor = x_2d2(0.::(2), 1.::(3)) //(0 until 2, 1 until 3)
+    val sub_tensor = x_2d2(0.::(2), 1.::(3)) // (0 until 2, 1 until 3)
 
-    //修改切片
+    // 修改切片
 //    sub_tensor(0, 0) = 101
-    sub_tensor.update(Seq(0, 0),101)
+    sub_tensor.update(Seq(0, 0), 101)
 //
     println(f"\n修改后的切片:\n ${sub_tensor}")
     println(f"\n修改切片后的原始 x_2d2:\n ${x_2d2}") // 注意变化！
 
-
-    //06
+    // 06
     // 创建一个张量
     val data = torch.tensor(Seq(Seq(1, 2), Seq(3, 4), Seq(5, 6)))
     println(f"原始数据张量:\n ${data}")
@@ -373,16 +358,15 @@ object lesson_02 {
     println(f"所选元素的形状: ${selected_elements.shape}")
 
     // 根据条件修改元素
-    val index  = data <= 3
+    val index = data <= 3
     println(f"\n将小于等于3的元素为零后的数据索引 mask :\n ${data}")
 //    data(index) = 0
 //    data.update(Seq(index),0)
-    data.update(index,0)
+    data.update(index, 0)
     println(f"\n将小于等于3的元素设置为零后的数据 更新后 :\n ${data}")
 
-
-    //07
-    val row_mask = data(---, 0) >2
+    // 07
+    val row_mask = data(---, 0) > 2
     println(f"\n行遮罩 (data[:, 0] > 2): ${row_mask}")
 
     // 使用 ':' 选择所选行中的所有列
@@ -390,16 +374,6 @@ object lesson_02 {
     val selected_rows2 = data(row_mask, ---)
     println(f"\n第一列大于2的行:\n ${selected_rows2}")
 
-
-
   }
-
-
-
-
-
-
-
-
 
 }

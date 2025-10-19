@@ -1,20 +1,17 @@
 package lesson
 
-
 import torch.Device.{CPU, CUDA}
 import torch.internal.NativeConverters.{fromNative, toNative}
 import torch.nn.functional as F
 import torch.nn.modules.HasParams
 import torch.*
 
-
-object lesson_02_2 extends App{
-
+object lesson_02_2 extends App {
 
 //  @main
   def main(): Unit = {
 
-    //48
+    // 48
     val device6 = torch.Device(if torch.cuda.is_available() then "cuda" else "cpu")
     // 创建张量（除非另有说明，否则默认为CPU）
     val cpu_tensor_a = torch.randn(2, 2)
@@ -40,11 +37,10 @@ object lesson_02_2 extends App{
       val result_on_cpu = cpu_tensor_a + cpu_tensor_again
       println(f"在 ${result_on_cpu.device} 上的操作结果:\n ${result_on_cpu}")
 
-
-    //47
+    // 47
     // 创建一个浮点张量
     val float_tensor_orig = torch.tensor(Seq(1.1, 2.7, 3.5, 4.9))
-    println(s"\n原始浮点张量: ${float_tensor_orig}" )
+    println(s"\n原始浮点张量: ${float_tensor_orig}")
     println(s"数据类型: ${float_tensor_orig.dtype}")
 
     // 转换为 int32
@@ -53,8 +49,7 @@ object lesson_02_2 extends App{
     println(s"\n转换为整数张量: ${int_tensor_cast}")
     println(s"数据类型: ${int_tensor_cast.dtype}")
 
-
-    //46
+    // 46
     // 创建一个整数张量
     val int_tensor2 = torch.tensor(Seq(1, 2, 3, 4))
     println(s"\n整数张量:${int_tensor2}")
@@ -66,7 +61,7 @@ object lesson_02_2 extends App{
     println(s"\n转换为浮点张量: ${float_tensor2}")
     println(s"数据类型:${float_tensor2.dtype}")
 
-    //45
+    // 45
     // 创建一个3x3张量和一个3x1张量（列向量）
     val matrix2 = torch.tensor(Seq(Seq(1, 2, 3), Seq(4, 5, 6), Seq(7, 8, 9)))
     val col_vector = torch.tensor(Seq(Seq(100), Seq(200), Seq(300))) // 形状 3x1
@@ -77,7 +72,7 @@ object lesson_02_2 extends App{
     val result_col = matrix2 + col_vector
     println(s"\n矩阵 + 列向量（广播）:\n ${result_col}")
 
-    //44
+    // 44
     // 创建一个3x3张量和一个1x3张量（行向量）
     val matrix = torch.tensor(Seq(Seq(1, 2, 3), Seq(4, 5, 6), Seq(7, 8, 9)))
     val row_vector = torch.tensor(Seq(Seq(10, 20, 30))) // 形状 1x3
@@ -88,8 +83,7 @@ object lesson_02_2 extends App{
     val result = matrix + row_vector
     println(s"\n矩阵 + 行向量（广播）:\n ${result}")
 
-
-    //43
+    // 43
     // 创建一个值从0到23的张量
     val tensor_to_split = torch.arange(24).reshape(6, 4)
     println(s"\n待拆分张量（6x4）:\n ${tensor_to_split}")
@@ -97,13 +91,11 @@ object lesson_02_2 extends App{
     // 沿维度0拆分为3个部分
     val chunks = torch.chunk(tensor_to_split, chunks = 3, dim = 0)
     println("\n拆分为3个部分:")
-    chunks.zipWithIndex.foreach((chunk,i) =>{
+    chunks.zipWithIndex.foreach((chunk, i) => {
       println(f"部分 {i}（形状 ${chunk.shape}）:\n ${chunk}")
     })
 
-
-
-    //40
+    // 40
     // 创建两个2x3张量
     val tensor_a1 = torch.tensor(Seq(Seq(1, 2, 3), Seq(4, 5, 6)))
     val tensor_b1 = torch.tensor(Seq(Seq(7, 8, 9), Seq(10, 11, 12)))
@@ -115,13 +107,13 @@ object lesson_02_2 extends App{
     println(s"\n沿行连接（dim=0）:\n ${concatenated_rows}")
     println(s"形状: ${concatenated_rows.shape}") // 应该是 4x3
 
-    //41
+    // 41
     // 沿维度1连接（连接列）
     val concatenated_cols = torch.cat(Seq(tensor_a1, tensor_b1), dim = 1)
     println(s"\n沿列连接（dim=1）:\n ${concatenated_cols}")
     println(s"形状: ${concatenated_cols.shape}") // 应该是 2x6
 
-    //42
+    // 42
     // 堆叠张量 - 创建一个新维度（默认 dim=0）
     val stacked_tensor = torch.stack(Seq(tensor_a1, tensor_b1), dim = 0)
     println(s"\n堆叠的张量（dim=0）:\n ${stacked_tensor}")
@@ -132,9 +124,7 @@ object lesson_02_2 extends App{
     println(s"\n堆叠的张量（dim=1）:\n ${stacked_tensor_dim1}")
     println(s"形状: ${stacked_tensor_dim1.shape}") // 应该是 2x2x3
 
-
-
-    //38
+    // 38
     // 创建一个值从0到11的张量
     val tensor_1d = torch.arange(12)
     println(s"\n原始一维张量:\n ${tensor_1d}")
@@ -148,7 +138,7 @@ object lesson_02_2 extends App{
     val view_tensor = tensor_1d.view(3, 4)
     println(s"\n视为3x4:\n ${view_tensor}")
 
-    //39
+    // 39
     // 原始3x4张量
     println(s"\n原始3x4张量:\n ${reshaped_tensor}")
 
@@ -158,7 +148,7 @@ object lesson_02_2 extends App{
     println(s"原始形状: ${reshaped_tensor.shape}")
     println(s"置换后形状: ${permuted_tensor.shape}")
 
-    //34
+    // 34
     // 创建一个示例二维张量（3行，4列）
     val data = Seq(Seq(1, 2, 3, 4), Seq(5, 6, 7, 8), Seq(9, 10, 11, 12))
     val tensor_2d = torch.tensor(data)
@@ -169,7 +159,7 @@ object lesson_02_2 extends App{
     println(f"\n在 [1, 2] 的元素: ${element}")
     println(f"值: ${element.item()}") // 使用 .item() 获取Scala数值
 
-    //35
+    // 35
     // 选择索引为1的行
     val row_1 = tensor_2d(1)
     println(s"\n第二行（索引1）:\n ${row_1}")
@@ -178,12 +168,12 @@ object lesson_02_2 extends App{
     val row_1_alt = tensor_2d(1, ::)
     println(s"\n第二行（替代方法）:\n ${row_1_alt}")
 
-    //36
+    // 36
     // 选择所有行，列索引为2
     val col_2 = tensor_2d(::, 2)
     println(s"\n第三列（索引2）:\n ${col_2}")
 
-    //37
+    // 37
     // 创建布尔掩码
     val mask = tensor_2d > 7
     println(s"\n布尔掩码（张量 > 7）:\n ${mask}")
@@ -192,44 +182,39 @@ object lesson_02_2 extends App{
     val selected_elements = tensor_2d(mask)
     println(s"\n大于7的元素:\n ${selected_elements}")
 
-
-
-
-    //33
+    // 33
     // 检查CUDA是否可用并设置设备
-    val device5 = torch.Device(if torch.cuda.is_available()then "cuda" else "cpu")
+    val device5 = torch.Device(if torch.cuda.is_available() then "cuda" else "cpu")
     println(f"正在使用设备: ${device5}")
 
-    //32
-    val device4 = torch.Device("cpu") //("CUDA")
+    // 32
+    val device4 = torch.Device("cpu") // ("CUDA")
     // 错误示例（假设 device='cuda'）
     val cpu_a = torch.randn(2, 2)
-    val gpu_b = torch.randn(2, 2).to(device4) //, device = device)
+    val gpu_b = torch.randn(2, 2).to(device4) // , device = device)
     try
 
-    // 如果 device 是 'cuda'，这很可能会失败
+      // 如果 device 是 'cuda'，这很可能会失败
       val c = cpu_a + gpu_b
     catch
       case e: RuntimeException =>
         println(f"在不同设备上执行操作时出错：${e}")
 
-
-    //31
+    // 31
     val device3 = torch.Device("CUDA")
     val cpu_tensor3 = torch.ones(2, 2)
 
     // 使用便利方法（假设 GPU 可用且 'device' 为 'cuda'）
     if device3.device == CUDA then
-    // 将 cpu_tensor 移动到 GPU
+      // 将 cpu_tensor 移动到 GPU
       val gpu_tensor_alt = cpu_tensor3.cuda()
       println(f"使用 .cuda()：${gpu_tensor_alt.device}")
 
-    // 将 gpu_tensor_alt 移回 CPU
+      // 将 gpu_tensor_alt 移回 CPU
       val cpu_tensor_alt = gpu_tensor_alt.cpu()
       println(f"使用 .cpu()：${cpu_tensor_alt.device}")
 
-
-    //30
+    // 30
     val device2 = torch.Device("cpu")
 
     // 从 CPU 张量开始
@@ -243,24 +228,22 @@ object lesson_02_2 extends App{
 
     // 如果张量在 GPU 上，则显式移回 CPU
     if moved_tensor.is_cuda then // 检查张量是否在 CUDA 设备上
-      val back_to_cpu = moved_tensor.to(device =CPU)
+      val back_to_cpu = moved_tensor.to(device = CPU)
       println(f"张量移回至：${back_to_cpu.device}")
 
-    //29
+    // 29
     // 直接在选定设备上创建张量
     val device = torch.Device("cpu")
     try
 
-
-    // 如果 device='cpu'，此张量将在 CPU 上；如果 device='cuda'，则在 GPU 上
-      val device_tensor = torch.randn(3, 4) //, device = "cpu")
+      // 如果 device='cpu'，此张量将在 CPU 上；如果 device='cuda'，则在 GPU 上
+      val device_tensor = torch.randn(3, 4) // , device = "cpu")
       println(f"张量创建于：${device_tensor.device}")
     catch
       case e: RuntimeException =>
         println(f"无法直接在 ${device} 上创建张量：{e}") // 处理未找到 GPU 等情况
 
-
-    //28
+    // 28
     // 检查 CUDA 可用性并相应设置设备
     if torch.cuda.is_available() then
       val device = torch.Device("cuda") // 使用第一个可用的 CUDA 设备
@@ -272,14 +255,12 @@ object lesson_02_2 extends App{
 
     // device 现在包含 torch.device('cuda') 或 torch.device('cpu')
 
-
-    //27
+    // 27
     // 默认在 CPU 上创建张量
     val cpu_tensor = torch.tensor(Seq(1.0, 2.0, 3.0))
     println(f"默认张量设备：${cpu_tensor.device}")
 
-
-   //26
+    // 26
     val int_t = torch.tensor(Seq(1, 2), dtype = torch.int32)
     val float_t = torch.tensor(Seq(0.5, 0.5), dtype = torch.float32)
     val double_t = torch.tensor(Seq(0.1, 0.1), dtype = torch.float64)
@@ -292,7 +273,7 @@ object lesson_02_2 extends App{
     val result2 = float_t + double_t
     println(f"float32 + float64 = ${result2}, dtype: ${result2.dtype}")
 
-    //25
+    // 25
     // 原始整数张量
     val tensor_a = torch.tensor(Seq(0, 1, 0, 1))
     println(f"Original tensor: ${tensor_a}, dtype: ${tensor_a.dtype}")
@@ -309,8 +290,7 @@ object lesson_02_2 extends App{
     val tensor_d = tensor_a.bools() // 等同于 .to(torch.bool)
     println(f".bool(): ${tensor_d}, dtype: ${tensor_d.dtype}")
 
-
-    //24
+    // 24
     // 原始浮点张量
     val float_tensor = torch.tensor(Seq(1.1, 2.2, 3.3), dtype = torch.float32)
     println(f"Original tensor: ${float_tensor}, dtype: ${float_tensor.dtype}")
@@ -325,20 +305,18 @@ object lesson_02_2 extends App{
     val bf_tensor = int_tensor.to(dtype = torch.bfloat16) // 可以只指定 dtype
     println(f"Casted to bfloat16: ${bf_tensor}, dtype: ${bf_tensor.dtype}")
 
-
-    //23
+    // 23
     // 创建一个64位浮点数张量
     val c6 = torch.tensor(Seq(1.0, 2.0), dtype = torch.float64)
     println(f"\nTensor c: ${c6}")
     println(f"dtype of c: ${c6.dtype}")
 
     // 创建一个32位整数张量
-    val d = torch.ones(2, 2).to(torch.int32) //, dtype = torch.int32)
+    val d = torch.ones(2, 2).to(torch.int32) // , dtype = torch.int32)
     println(f"\nTensor d:\n ${d}")
     println(f"dtype of d: ${d.dtype}")
 
-
-    //22
+    // 22
     // 默认浮点张量
     val a5 = torch.tensor(Seq(1.0, 2.0, 3.0))
     println(f"Tensor a: ${a5}")
@@ -349,27 +327,22 @@ object lesson_02_2 extends App{
     println(f"\nTensor b: ${b5}")
     println(f"dtype of b:  ${b5.dtype}")
 
-
-    //21
+    // 21
     // 张量 A: 形状 [2, 3]
-    val a4 = torch.tensor(Seq(Seq(1, 2, 3),
-      Seq(4, 5, 6)))
+    val a4 = torch.tensor(Seq(Seq(1, 2, 3), Seq(4, 5, 6)))
     // 张量 B: 形状 [2]
     val b4 = torch.tensor(Seq(10, 20))
 
-    try
+    try {
       val c4 = a4 + b4
-    catch
+    } catch
       case e: Exception =>
         println(f"Error: {e}")
     // 错误: 张量 a (3) 的大小必须与张量 b (2) 在非单例维度 1 处匹配
 
-
-
-    //20
+    // 20
     // 张量 A: 形状 [2, 3]
-    val a3 = torch.tensor(Seq(Seq(1, 2, 3),
-      Seq(4, 5, 6)))
+    val a3 = torch.tensor(Seq(Seq(1, 2, 3), Seq(4, 5, 6)))
     // 张量 B: 形状 [2, 1]
     val b3 = torch.tensor(Seq(Seq(10), Seq(20)))
 
@@ -384,8 +357,7 @@ object lesson_02_2 extends App{
     // tensor([[11, 12, 13],
     //         [24, 25, 26]])
 
-
-    //19
+    // 19
     // 张量 A: 形状 [2, 3]
     val a2 = torch.tensor(Seq(Seq(1, 2, 3), Seq(4, 5, 6)))
     // 张量 B: 形状 [3] (为了广播，可以视为 [1, 3])
@@ -402,7 +374,7 @@ object lesson_02_2 extends App{
     // tensor([[11, 22, 33],
     //         [14, 25, 36]])
 
-    //18
+    // 18
     // 张量 A: 形状 [2, 3]
     val a = torch.tensor(Seq(Seq(1, 2, 3), Seq(4, 5, 6)))
     // 标量 B: 形状 [] (0 维度)
@@ -421,27 +393,6 @@ object lesson_02_2 extends App{
     // 结果 c:
     // tensor([[11, 12, 13],
     //         [14, 15, 16]])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   }
 }

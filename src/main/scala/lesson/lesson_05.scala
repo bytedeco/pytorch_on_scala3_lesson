@@ -1,6 +1,5 @@
 package lesson
 
-
 import org.bytedeco.pytorch.ExampleVector
 import torch.Device.{CPU, CUDA}
 import torch.internal.NativeConverters.{fromNative, toNative}
@@ -22,16 +21,20 @@ import torch.numpy.matrix.NDArray
 import torch.pandas.DataFrame as pd
 import torch.optim
 
-
-class SimpleCustomDataset[Input <: BFloat16 | FloatNN: Default, Target <: BFloat16 | FloatNN: Default](feature: NDArray[Double], label: NDArray[Int])
-  extends Dataset[Input, Target] {
+class SimpleCustomDataset[
+    Input <: BFloat16 | FloatNN: Default,
+    Target <: BFloat16 | FloatNN: Default
+](feature: NDArray[Double], label: NDArray[Int])
+    extends Dataset[Input, Target] {
   require(feature.getSize == label.getSize, "特征和标签的长度必须相同。")
 
   override def get_batch(request: Long*): ExampleVector = ???
 
-  override def features: Tensor[Input] = torch.tensors(feature).to(dtype =implicitly[Default[Input]].dtype)
+  override def features: Tensor[Input] =
+    torch.tensors(feature).to(dtype = implicitly[Default[Input]].dtype)
 
-  override def targets: Tensor[Target] = torch.tensors(label).to(dtype =implicitly[Default[Target]].dtype)
+  override def targets: Tensor[Target] =
+    torch.tensors(label).to(dtype = implicitly[Default[Target]].dtype)
 
   //  """返回样本总数。"""
   override def length: Long = feature.getSize
@@ -41,38 +44,37 @@ class SimpleCustomDataset[Input <: BFloat16 | FloatNN: Default, Target <: BFloat
   // 返回:
   //      tuple: 给定索引对应的 (特征, 标签)。
   //  //获取给定索引的特征和标签
-  override def getItem(idx:  Int): (Tensor[Input], Tensor[Target]) = {
-    (features(idx),targets(idx))
+  override def getItem(idx: Int): (Tensor[Input], Tensor[Target]) = {
+    (features(idx), targets(idx))
   }
 
-  override def iterator: Iterator[(Tensor[Input], Tensor[Target])] = new Iterator[(Tensor[Input], Tensor[Target])] {
-    private var index = 0
+  override def iterator: Iterator[(Tensor[Input], Tensor[Target])] =
+    new Iterator[(Tensor[Input], Tensor[Target])] {
+      private var index = 0
 
-    override def hasNext: Boolean = index < this.length
+      override def hasNext: Boolean = index < this.length
 
-    override def next(): (Tensor[Input], Tensor[Target]) = {
-      if (!hasNext) throw new NoSuchElementException("No more elements")
-      val item = getItem(index)
-      index += 1
-      item
+      override def next(): (Tensor[Input], Tensor[Target]) = {
+        if (!hasNext) throw new NoSuchElementException("No more elements")
+        val item = getItem(index)
+        index += 1
+        item
+      }
     }
-  }
 
 }
 
-
 object lesson_05 {
-
 
   @main
   def main(): Unit = {
 
-    //01
+    // 01
     // --- 示例用法 ---
     // 样本数据（请替换为你的实际数据）
     val num_samples = 100
     val num_features = 10
-    val features_data = np.rand(Array(num_samples, num_features)) //todo numpy randn随机生成特征数据
+    val features_data = np.rand(Array(num_samples, num_features)) // todo numpy randn随机生成特征数据
     val labels_data = np.randint(0, 5, size = Array(num_samples)) // 示例：5 个类别
 
     // 创建自定义数据集实例
@@ -100,7 +102,6 @@ object lesson_05 {
   }
 
 }
-
 
 //class ImageFilelistDataset[Input <: BFloat16 | FloatNN: Default, Target <: BFloat16 | FloatNN: Default](csv_file: String, root_dir: String, transform: Option[TensorModule[Input]] = None)
 //  extends Dataset[Input, Target] {

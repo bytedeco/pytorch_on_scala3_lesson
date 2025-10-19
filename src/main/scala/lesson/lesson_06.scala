@@ -7,9 +7,7 @@ import torch.nn.{modules, functional as F}
 import torch.utils.data.*
 import torch.*
 
-
 object lesson_06 {
-
 
 //  @main
   def main(): Unit = {
@@ -26,15 +24,15 @@ object lesson_06 {
     //    // 或者，使用Adam优化器
     //    optimizer = optim.Adam(model.parameters(true), lr = 0.001)
 
-
-    //02
+    // 02
     // 生成合成数据: y = 2x + 1 + 噪声
     val true_weight = torch.tensor(Seq(2.0))
     val true_bias = torch.tensor(Seq(1.0))
 
     // 生成训练数据
     val X_train_tensor = torch.randn(100, 1) * 5 // 100 个样本, 1 个特征
-    val y_train_tensor = true_weight * X_train_tensor + true_bias + torch.randn(100, 1) * 0.5 // 添加一些噪声
+    val y_train_tensor =
+      true_weight * X_train_tensor + true_bias + torch.randn(100, 1) * 0.5 // 添加一些噪声
 
     // 生成验证数据（独立数据集）
     val X_val_tensor = torch.randn(20, 1) * 5 // 20 个样本, 1 个特征
@@ -46,10 +44,10 @@ object lesson_06 {
 
     // 创建数据加载器
     val train_loader = DataLoader(dataset = train_dataset, batch_size = batch_size, shuffle = true)
-    val val_loader = DataLoader(dataset = val_dataset, batch_size = batch_size, shuffle = false) // 验证数据无需打乱
+    val val_loader =
+      DataLoader(dataset = val_dataset, batch_size = batch_size, shuffle = false) // 验证数据无需打乱
 
-
-    //03
+    // 03
     // 定义模型（一个简单的线性层）
     // 输入特征尺寸 = 1, 输出特征尺寸 = 1
     val model = nn.Linear(1, 1).to(device) // 将模型移动到选定设备
@@ -63,10 +61,11 @@ object lesson_06 {
     println("模型定义:")
     println(model.summarize)
     println("\n初始参数:")
-    model.named_parameters().foreach((name, param) =>
-      if param.requires_grad then
-        println(s"$name: ${param.data.squeeze()}")
-    )
+    model
+      .named_parameters()
+      .foreach((name, param) =>
+        if param.requires_grad then println(s"$name: ${param.data.squeeze()}")
+      )
     println("\n开始训练...")
     for (epoch <- (0 until num_epochs)) {
       model.train() // 将模型设置为训练模式
@@ -95,12 +94,11 @@ object lesson_06 {
       // 打印本轮的平均损失
       val avg_epoch_loss = running_loss / num_batches
       if (epoch + 1) % 10 == 0 then // 每10轮打印一次
-        println(s"Epoch [${epoch + 1}/${num_epochs}], Training Loss: ${avg_epoch_loss}") //:.4f
+        println(s"Epoch [${epoch + 1}/${num_epochs}], Training Loss: ${avg_epoch_loss}") // :.4f
     }
     println("训练完成！")
 
-
-    //04
+    // 04
     println("\n开始评估...")
     model.eval() // 将模型设置为评估模式
     var total_val_loss = 0.0
@@ -122,15 +120,13 @@ object lesson_06 {
         // 检查学习到的参数
         println("\n学习到的参数:")
         for ((name, param) <- model.named_parameters()) {
-          if param.requires_grad then
-            println(f"$name: ${param.data.squeeze()}")
+          if param.requires_grad then println(f"$name: ${param.data.squeeze()}")
           println(f"(真实权重: ${true_weight.item()}, 真实偏置: ${true_bias.item()})")
         }
       }
     }
 
-
-    //04
+    // 04
     // 保存模型学习到的参数
     val model_save_path = "linear_regression_model.pth"
     torch.save(model.state_dict(), model_save_path)
@@ -156,8 +152,6 @@ object lesson_06 {
     }
     // 预期输出应接近 2*10 + 1 = 21
 
-
   }
-
 
 }

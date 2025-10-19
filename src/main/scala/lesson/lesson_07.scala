@@ -1,31 +1,33 @@
 package lesson
 
-
 import torch.Device.{CPU, CUDA}
 import torch.internal.NativeConverters.{fromNative, toNative}
 import torch.nn.modules.{HasParams, TensorModule}
 import torch.nn.{modules, functional as F}
 import torch.{Tensor, *}
 
-
-class SimpleCNNs[ParamType <: FloatNN: Default] extends TensorModule[ParamType]  with HasParams[ParamType] {
+class SimpleCNNs[ParamType <: FloatNN: Default]
+    extends TensorModule[ParamType]
+    with HasParams[ParamType] {
 
   // 层定义
   // 卷积层1
-  val conv1 = nn.Conv2d(in_channels=1, out_channels=16, kernel_size=5, stride=1, padding=2)
+  val conv1 =
+    nn.Conv2d(in_channels = 1, out_channels = 16, kernel_size = 5, stride = 1, padding = 2)
   // 最大池化层1
-  val pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
+  val pool1 = nn.MaxPool2d(kernel_size = 2, stride = 2)
   // 卷积层2
-  val conv2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=5, stride=1, padding=2)
+  val conv2 =
+    nn.Conv2d(in_channels = 16, out_channels = 32, kernel_size = 5, stride = 1, padding = 2)
   // 最大池化层2
-  val pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
+  val pool2 = nn.MaxPool2d(kernel_size = 2, stride = 2)
   // 全连接层
   // fc1的输入特征取决于池化后的输出形状
   // 输入：28x28 -> Conv1 (padding=2) -> 28x28 -> Pool1 (stride=2) -> 14x14
   // -> Conv2 (padding=2) -> 14x14 -> Pool2 (stride=2) -> 7x7
   // 因此，展平后的尺寸是 32 个通道 * 7 高度 * 7 宽度 = 1568
-  val fc1 = nn.Linear(in_features=32 * 7 * 7, out_features=128)
-  val fc2 = nn.Linear(in_features=128, out_features=10) // 用于10个类别的输出
+  val fc1 = nn.Linear(in_features = 32 * 7 * 7, out_features = 128)
+  val fc2 = nn.Linear(in_features = 128, out_features = 10) // 用于10个类别的输出
 
   override def apply(input: Tensor[ParamType]): Tensor[ParamType] = forward(input)
 
@@ -57,14 +59,12 @@ class SimpleCNNs[ParamType <: FloatNN: Default] extends TensorModule[ParamType] 
 }
 object lesson_07 {
 
-
 //  @main
   def main(): Unit = {
 
-
-
-    //03
-    val conv_layer = nn.Conv2d(in_channels = 3, out_channels = 64, kernel_size = 3, stride = 1, padding = 1)
+    // 03
+    val conv_layer =
+      nn.Conv2d(in_channels = 3, out_channels = 64, kernel_size = 3, stride = 1, padding = 1)
     // 输入: N=16, Cin=3, Hin=32, Win=32
     val input_tensor = torch.randn(16, 3, 32, 32).to(torch.float32)
 
@@ -79,15 +79,16 @@ object lesson_07 {
     val output_tensor = conv_layer(input_tensor)
     println(s"Output shape: ${output_tensor.shape}") // 预期：[16, 64, 32, 32]
 
-    //04
-    val conv_layer_s2 = nn.Conv2d(in_channels = 3, out_channels = 64, kernel_size = 3, stride = 2, padding = 1)
+    // 04
+    val conv_layer_s2 =
+      nn.Conv2d(in_channels = 3, out_channels = 64, kernel_size = 3, stride = 2, padding = 1)
     // H_out = floor((32 + 2*1 - 3)/2 + 1) = floor(31/2 + 1) = floor(15.5 + 1) = floor(16.5) = 16
     // W_out = floor((32 + 2*1 - 3)/2 + 1) = floor(31/2 + 1) = floor(15.5 + 1) = floor(16.5) = 16
     // 前向传播
     val output_tensor_s2 = conv_layer_s2(input_tensor)
     println(s"Output shape: ${output_tensor_s2.shape}") // 预期：[16, 64, 16, 16]
 
-    //05
+    // 05
     // 来自前一个卷积层的输入: N=16, Cin=64, Hin=32, Win=32
     val pool_layer = nn.MaxPool2d(kernel_size = 2, stride = 2, padding = 0) // 常见设置
 
@@ -98,7 +99,7 @@ object lesson_07 {
     val pooled_output = pool_layer(output_tensor)
     println(s"Output shape: ${pooled_output.shape}") // 预期：[16, 64, 16, 16]
 
-    //02
+    // 02
     // 实例化模型
     val model = SimpleCNNs()
     println(model)
@@ -114,10 +115,11 @@ object lesson_07 {
     println(s"\nInput shape: ${dummy_input.shape}")
     println(s"Output shape: ${output.shape}") // 预期：[4, 10]
 
-    //01
+    // 01
     // 示例：一个Conv2d层，接收3个输入通道（例如RGB图像），
     // 使用5x5滤波器生成16个输出通道。
-    val conv1 = nn.Conv2d(in_channels = 3, out_channels = 16, kernel_size = 5, stride = 1, padding = 2)
+    val conv1 =
+      nn.Conv2d(in_channels = 3, out_channels = 16, kernel_size = 5, stride = 1, padding = 2)
 
     // 示例：一个MaxPool2d层，使用2x2窗口和步长为2。
     // 这通常会将输入的高度和宽度减半。

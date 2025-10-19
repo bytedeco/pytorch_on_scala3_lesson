@@ -1,13 +1,12 @@
 package lesson
 
-
 import torch.nn.modules.{HasParams, TensorModule}
 import torch.nn.{modules, functional as F}
 import torch.numpy.TorchNumpy as np
 import torch.{Tensor, *}
 
 //01
-class MySimpleNetwork[ParamType <: FloatNN: Default] extends TensorModule[ParamType]{
+class MySimpleNetwork[ParamType <: FloatNN: Default] extends TensorModule[ParamType] {
 
   //  示例 ：一个线性层
   val layer1 = nn.Linear(in_features = 10, out_features = 5)
@@ -26,10 +25,12 @@ class MySimpleNetwork[ParamType <: FloatNN: Default] extends TensorModule[ParamT
 }
 
 //02
-class CustomModuleWithParameter[ParamType <: FloatNN: Default] extends TensorModule[ParamType]  with HasParams[ParamType] {
+class CustomModuleWithParameter[ParamType <: FloatNN: Default]
+    extends TensorModule[ParamType]
+    with HasParams[ParamType] {
 
-  //一个可学习的参数张量
-  val my_weight = nn.Parameter("my_weight",torch.randn(5, 2))
+  // 一个可学习的参数张量
+  val my_weight = nn.Parameter("my_weight", torch.randn(5, 2))
   // 一个普通的张量属性（不会自动跟踪用于优化）
   val my_info = torch.tensor(Seq(1.0, 2.0))
 
@@ -43,7 +44,9 @@ class CustomModuleWithParameter[ParamType <: FloatNN: Default] extends TensorMod
 }
 
 //03
-class SimpleLinearModel[ParamType <: FloatNN: Default](input_features: Int, output_features: Int) extends TensorModule[ParamType]  with HasParams[ParamType] {
+class SimpleLinearModel[ParamType <: FloatNN: Default](input_features: Int, output_features: Int)
+    extends TensorModule[ParamType]
+    with HasParams[ParamType] {
 
   // 定义单个线性层
   val linear_layer = nn.Linear(input_features, output_features)
@@ -62,8 +65,9 @@ class SimpleLinearModel[ParamType <: FloatNN: Default](input_features: Int, outp
   }
 }
 
-
-class SimpleMLP[ParamType <: FloatNN: Default](input_size: Int, hidden_size: Int, output_size: Int) extends TensorModule[ParamType]  with HasParams[ParamType] {
+class SimpleMLP[ParamType <: FloatNN: Default](input_size: Int, hidden_size: Int, output_size: Int)
+    extends TensorModule[ParamType]
+    with HasParams[ParamType] {
 
   // 定义层
   val layer1 = nn.Linear(input_size, hidden_size)
@@ -111,7 +115,7 @@ object lesson_04 {
 //  @main
   def main(): Unit = {
 
-    //10
+    // 10
     // 示例用法
     val tanh_activation = nn.Tanh()
     val input_tensor10 = torch.randn(4).to(torch.float32) // 示例输入张量
@@ -120,8 +124,7 @@ object lesson_04 {
     println(f"输入: ${input_tensor10}")
     println(f"Tanh 输出: ${output_tensor10}")
 
-
-    //09
+    // 09
     // 示例用法
     val sigmoid_activation = nn.Sigmoid()
     val input_tensor9 = torch.randn(4).to(torch.float32) // 示例输入张量
@@ -130,7 +133,7 @@ object lesson_04 {
     println(f"输入: ${input_tensor9}")
     println(f"Sigmoid 输出: ${output_tensor9}")
 
-    //08
+    // 08
     // 示例用法
     val relu_activation = nn.ReLU()
     val input_tensor = torch.randn(4).to(torch.float32) // 示例输入张量
@@ -141,7 +144,7 @@ object lesson_04 {
 
     val model8 = SimpleNet()
 
-    //07
+    // 07
     // 示例：处理一批 10 个序列，每个序列长 20 步，每步有 5 个特征。
     // 使用大小为 30 的隐藏状态。
     // 设置 batch_first=True 以便更方便地处理数据。
@@ -157,7 +160,8 @@ object lesson_04 {
     // 将输入序列和初始隐藏状态通过 RNN
     // 输出包含所有时间步的输出
     // final_hidden_state 包含最后一个时间步的隐藏状态
-    val (output_sequence, final_hidden_state) = rnn_layer(input_sequence_batch, initial_hidden_state)
+    val (output_sequence, final_hidden_state) =
+      rnn_layer(input_sequence_batch, initial_hidden_state)
 
     println(f"Input shape: ${input_sequence_batch.shape}")
     println(f"Initial hidden state shape: ${initial_hidden_state.shape}")
@@ -172,8 +176,7 @@ object lesson_04 {
     // Output sequence shape: torch.Size([10, 20, 30])
     // Final hidden state shape: torch.Size([1, 10, 30])
 
-
-    //06
+    // 06
     // 示例：处理一批 16 张图像，3 通道（RGB），32x32 像素
     // 应用 6 个滤波器（输出通道），每个大小为 5x5
     val conv_layer = nn.Conv2d(in_channels = 3, out_channels = 6, kernel_size = 5)
@@ -200,8 +203,7 @@ object lesson_04 {
     // Weight (filter) shape: torch.Size([6, 3, 5, 5])
     // Bias shape: torch.Size([6])
 
-
-    //05
+    // 05
     // 示例：创建一个线性层，输入特征大小为 20，输出特征大小为 30
     val linear_layer = nn.Linear(in_features = 20, out_features = 30)
 
@@ -224,7 +226,7 @@ object lesson_04 {
     // Weight shape: torch.Size([30, 20])
     // Bias shape: torch.Size([30])
 
-    //04
+    // 04
     // --- 使用示例 ---
     // 定义维度
     val in_size = 784 // 示例：展平的 28x28 图像
@@ -232,7 +234,8 @@ object lesson_04 {
     val out_size = 10 // 示例：用于分类的 10 个类别
 
     // 实例化 MLP
-    val mlp_model = SimpleMLP(input_size = in_size, hidden_size = hidden_units, output_size = out_size)
+    val mlp_model =
+      SimpleMLP(input_size = in_size, hidden_size = hidden_units, output_size = out_size)
 
     // 创建模拟输入（批大小=32）
     val dummy_mlp_input = torch.randn(32, in_size).to(torch.float32)
@@ -245,11 +248,10 @@ object lesson_04 {
     // 检查参数
     println("\nMLP 模型参数:")
     for ((name, param) <- mlp_model.named_parameters()) {
-      if param.requires_grad then
-        println(f"  名称: ${name}, 形状: ${param.shape}")
+      if param.requires_grad then println(f"  名称: ${name}, 形状: ${param.shape}")
     }
 
-    //03
+    // 03
     // --- 使用示例 ---
     // 定义输入和输出维度
     val in_dim = 10
@@ -270,16 +272,17 @@ object lesson_04 {
     println("\n模型参数:")
     for ((name, param) <- model3.named_parameters()) {
 
-      if param.requires_grad then
-        println(s"  名称: ${name}, 形状: ${param.shape}")
+      if param.requires_grad then println(s"  名称: ${name}, 形状: ${param.shape}")
     }
 
-    //02
+    // 02
     val module = CustomModuleWithParameter()
 
     // 访问模块跟踪的参数
-    for( (name, param) <- module.named_parameters(true)){
-      println(f"Parameter name: ${name}, Shape: ${param.shape}, Requires grad: ${param.requires_grad}")
+    for ((name, param) <- module.named_parameters(true)) {
+      println(
+        f"Parameter name: ${name}, Shape: ${param.shape}, Requires grad: ${param.requires_grad}"
+      )
 
     }
 
@@ -288,7 +291,7 @@ object lesson_04 {
 
     }
 
-    //01
+    // 01
     // 实例化网络
     val model2 = MySimpleNetwork()
     println(model2)

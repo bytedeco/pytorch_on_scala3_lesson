@@ -5,22 +5,23 @@
 # .                        🎖️ AI Infra 3.0 ON Scala3 ! 🎖️
 # STorch AI - 🌟🌟🌟🌟 GPU Accelerated Distributeed Deep Learning && LLM && RL for Scala 3 🌟🌟🌟🌟
 
-## PyTorch ON Scala3 Lesson You will learn:
+## 🎖️🎖️🎖️PyTorch ON Scala3 Lesson => 
+    You will learn:
 
-### Lesson 01 How to create Tensor and numpy NDArray
-### lesson 02 Tensor operate
-### lesson 03 Tensor autograd and backward
-### lesson 04 How to use torch layer loss function and activation 
-### Lesson 05 How to use TensorDataset and DataLoader
-### lesson 06 How to use Optimizer and training circle
-### lesson 07 ow to training the torch model 
-### lesson 08 How to control the training and check the error
-### Lesson 09 Pytorch Inner Autograd 
-### lesson 10 How to use Transformer and Attention
-### lesson 11 How to optimize the model and training strategy
-### lesson 12 How to deploy the model
-### Lesson 13 How to make distribute training the model
-### lesson 14 How to create Optimizer by self
+### 🌟🌟Lesson 01 How to create Tensor and numpy NDArray
+### 🌟🌟lesson 02 Tensor operate
+### 🌟🌟lesson 03 Tensor autograd and backward
+### 🌟🌟lesson 04 How to use torch layer loss function and activation 
+### 🌟🌟lesson 05 How to use TensorDataset and DataLoader
+### 🌟🌟lesson 06 How to use Optimizer and training circle
+### 🌟🌟lesson 07 ow to training the torch model 
+### 🌟🌟lesson 08 How to control the training and check the error
+### 🌟🌟lesson 09 Pytorch Inner Autograd 
+### 🌟🌟lesson 10 How to use Transformer and Attention
+### 🌟🌟lesson 11 How to optimize the model and training strategy
+### 🌟🌟lesson 12 How to deploy the model
+### 🌟🌟lesson 13 How to make distribute training the model
+### 🌟🌟lesson 14 How to create Optimizer by self
 
 
 

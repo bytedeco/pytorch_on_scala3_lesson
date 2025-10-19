@@ -1,38 +1,33 @@
-
 package lesson
 
-import org.bytedeco.pytorch
-import org.bytedeco.javacpp.{FloatPointer, PointerScope}
-import org.bytedeco.pytorch.{Example, InputArchive, OutputArchive, TensorExampleVectorIterator}
-import org.bytedeco.pytorch.{ChunkDatasetOptions, Example, ExampleIterator, ExampleStack, ExampleVector}
-import org.bytedeco.pytorch.global.torch as torchNative
-
-import java.net.URL
-import java.util.zip.GZIPInputStream
-import java.nio.file.{Files, Path, Paths}
-import scala.collection.{mutable, Set as KeySet}
-import scala.util.{Failure, Random, Success, Try, Using}
-import torch.Device.{CPU, CUDA}
-import torch.internal.NativeConverters.{fromNative, toNative}
 import torch.nn.loss.LossFunc
-import torch.{&&, ---, ::, BFloat16, DType, Default, Device, Float32, FloatNN, Int64, Slice, Tensor, nn}
+import torch.{
+  &&,
+  ---,
+  ::,
+  BFloat16,
+  DType,
+  Default,
+  Device,
+  Float32,
+  FloatNN,
+  Int64,
+  Slice,
+  Tensor,
+  nn
+}
 import torch.nn.{modules, functional as F}
 import torch.nn.modules.{HasParams, TensorModule}
-import torch.optim.Adam
-import torch.utils.data.{DataLoader, DataLoaderOptions, Dataset, NormalTensorDataset}
-import torch.utils.data.dataset.custom.{FashionMNIST, MNIST}
 import torch.utils.data.*
-import torch.utils.data.dataloader.*
-import torch.utils.data.datareader.ChunkDataReader
-import torch.utils.data.dataset.*
-import torch.utils.data.sampler.RandomSampler
 import torch.utils.tensorboard.SummaryWriter
 
 import scala.collection.mutable.SortedMap as OrderedDict
 import torch.numpy.TorchNumpy as np
 import torch.optim
 
-class SimpleMLP2[ParamType <: FloatNN: Default] extends TensorModule[ParamType]  with HasParams[ParamType] {
+class SimpleMLP2[ParamType <: FloatNN: Default]
+    extends TensorModule[ParamType]
+    with HasParams[ParamType] {
 
   val layer1 = nn.Linear(784, 128) // 输入 784，输出 128
   val activation = nn.ReLU()
@@ -53,18 +48,22 @@ class SimpleMLP2[ParamType <: FloatNN: Default] extends TensorModule[ParamType] 
   }
 }
 
-
 object lesson_08_2 {
 
   // 假设模型、val_dataloader、loss_fn 已定义
 
-  def evaluate_model[ParamType <: FloatNN: Default](model: TensorModule[ParamType], val_dataloader: DataLoader[ParamType], loss_fn: LossFunc, device: Device): (Double, Float) = {
+  def evaluate_model[ParamType <: FloatNN: Default](
+      model: TensorModule[ParamType],
+      val_dataloader: DataLoader[ParamType],
+      loss_fn: LossFunc,
+      device: Device
+  ): (Double, Float) = {
     model.eval() // 设置模型为评估模式
     var running_loss = 0.0f
     var correct_predictions = 0f
     var total_samples = 0
-    torch.no_grad{
-      for ((inputs, labels)<- val_dataloader){
+    torch.no_grad {
+      for ((inputs, labels) <- val_dataloader) {
         inputs.to(device)
         labels.to(device)
         // 前向传播
@@ -75,10 +74,10 @@ object lesson_08_2 {
         running_loss = running_loss + loss.item().asInstanceOf[Float] * inputs.size(0)
         val predicted = torch.max(outputs, 1)._2
         total_samples += labels.size(0)
-        correct_predictions = correct_predictions + (predicted == labels).sum().item().asInstanceOf[Float]
+        correct_predictions =
+          correct_predictions + (predicted == labels).sum().item().asInstanceOf[Float]
         // --- 记录步骤结束 ---
       }
-
 
     }
     // 计算当前轮次的平均损失和准确度
@@ -89,16 +88,20 @@ object lesson_08_2 {
     (epoch_loss, epoch_acc)
   }
 
-
-
   // 假设模型、train_dataloader、loss_fn、optimizer 已定义
 
-  def train_one_epoch[D <: FloatNN : Default](model: TensorModule[D], train_dataloader: DataLoader[D], loss_fn: LossFunc, optimizer: optim.Optimizer, device: Device): (Double, Float) = {
-    model.train()// 设置模型为训练模式
+  def train_one_epoch[D <: FloatNN: Default](
+      model: TensorModule[D],
+      train_dataloader: DataLoader[D],
+      loss_fn: LossFunc,
+      optimizer: optim.Optimizer,
+      device: Device
+  ): (Double, Float) = {
+    model.train() // 设置模型为训练模式
     var running_loss = 0.0f
     var correct_predictions = 0f
     var total_samples = 0
-    for (((inputs, labels),batch_idx) <- train_dataloader.zipWithIndex){
+    for (((inputs, labels), batch_idx) <- train_dataloader.zipWithIndex) {
       inputs.to(device)
       labels.to(device)
       // 1. 清零梯度
@@ -106,7 +109,7 @@ object lesson_08_2 {
       // 2. 前向传播
       var outputs = model(inputs)
       // 3. 计算损失
-      var loss:Tensor[D] = loss_fn(outputs)(labels)
+      var loss: Tensor[D] = loss_fn(outputs)(labels)
       // 4. 反向传播
       loss.backward()
       // 5. 优化器步骤
@@ -117,7 +120,8 @@ object lesson_08_2 {
       // 累加准确度（分类示例）
       val predicted = torch.max(outputs, 1)._2
       total_samples += labels.size(0)
-      correct_predictions = correct_predictions + (predicted == labels).sum().item().asInstanceOf[Float]
+      correct_predictions =
+        correct_predictions + (predicted == labels).sum().item().asInstanceOf[Float]
       // --- 记录步骤结束 ---
 
     }
@@ -132,11 +136,10 @@ object lesson_08_2 {
 
   }
 
-
 //  @main
   def main(): Unit = {
 
-    //03
+    // 03
     // --- 在你的主训练脚本中 ---
     val num_epochs = 10
     val device = if torch.cuda.is_available() then torch.Device("cuda") else torch.Device("cpu")
@@ -151,13 +154,16 @@ object lesson_08_2 {
     val model = nn.Linear[Float32](10, 2)
     val optimizer = torch.optim.Adam(model.parameters(), lr = 1e-3)
     val dataset = DummyDataset(num_samples = 105)
-    val train_dataloader = DataLoader(dataset = dataset, batch_size = 32, shuffle = true, num_workers = 4)
+    val train_dataloader =
+      DataLoader(dataset = dataset, batch_size = 32, shuffle = true, num_workers = 4)
 
-    val val_dataloader = DataLoader(dataset = dataset, batch_size = 32, shuffle = true, num_workers = 4)
+    val val_dataloader =
+      DataLoader(dataset = dataset, batch_size = 32, shuffle = true, num_workers = 4)
     val loss_fn = nn.CrossEntropyLoss()
-    for(epoch <- (0 until num_epochs)){
+    for (epoch <- (0 until num_epochs)) {
       println(f"--- Epoch {epoch+1}/{num_epochs} ---")
-      val (train_loss, train_acc) = train_one_epoch(model, train_dataloader, loss_fn, optimizer, device)
+      val (train_loss, train_acc) =
+        train_one_epoch(model, train_dataloader, loss_fn, optimizer, device)
       val (val_loss, val_acc) = evaluate_model(model, val_dataloader, loss_fn, device)
 
       // 存储指标
@@ -182,9 +188,7 @@ object lesson_08_2 {
       // 例如，将它们保存到文件或绘制图表。
     }
 
-
-
-    //04
+    // 04
     // 1. 设置 TensorBoard 写入器
     // 日志文件将保存在 'runs/simple_experiment' 目录中
     val writer = new SummaryWriter("runs/simple_experiment")
@@ -201,7 +205,7 @@ object lesson_08_2 {
     // 3. 简单训练循环
     println("开始模拟训练...")
     val num_epochs_2 = 50
-    for (epoch <- (0 until num_epochs_2)){
+    for (epoch <- (0 until num_epochs_2)) {
       optimizer2.zero_grad() // 梯度清零
       val outputs = model2(inputs.to(torch.float32)) // 前向传播
       val loss = criterion(outputs, targets) // 计算损失
@@ -211,7 +215,7 @@ object lesson_08_2 {
       simulated_loss.backward() // 反向传播（使用模拟损失进行演示）
       optimizer2.step() // 更新权重
       // 4. 将指标记录到 TensorBoard
-      if (epoch + 1) %5 == 0 then //// 每 5 个周期记录一次
+      if (epoch + 1) % 5 == 0 then //// 每 5 个周期记录一次
         // 记录标量“损失”值
         writer.add_scalar("Training / Loss", simulated_loss.item().asInstanceOf[Float], epoch)
         // 记录模型权重分布（以线性层为例）
@@ -219,7 +223,7 @@ object lesson_08_2 {
         writer.add_histogram("Model / Bias", model.bias.tolist(), epoch)
         println(s"周期[ ${epoch + 1} / ${num_epochs}]，模拟损失${simulated_loss.item()}")
 //        time.sleep(0.1)
-      //模拟训练时间
+      // 模拟训练时间
 
     }
     // 5. 添加模型图（可选）

@@ -24,7 +24,12 @@ import torch.*
 //
 //momentum_buffer
 
-class MyCustomModule[ParamType <: FloatNN: Default](input_features : Int, output_features : Int, hidden_units : Int) extends TensorModule[ParamType] with HasParams[ParamType] {
+class MyCustomModule[ParamType <: FloatNN: Default](
+    input_features: Int,
+    output_features: Int,
+    hidden_units: Int
+) extends TensorModule[ParamType]
+    with HasParams[ParamType] {
 
   // 定义子模块（层）
   val layer1 = nn.Linear(input_features, hidden_units)
@@ -34,7 +39,7 @@ class MyCustomModule[ParamType <: FloatNN: Default](input_features : Int, output
   var forward_count = 0
   // 直接定义可学习参数（如果需要）
   // 示例：一个可学习的缩放因子
-  val scale = nn.Parameter("scale",torch.randn(1))
+  val scale = nn.Parameter("scale", torch.randn(1))
 
   // 定义不可学习的状态（缓冲区）
   // 示例：一个用于正向传播的计数器（仅作演示）

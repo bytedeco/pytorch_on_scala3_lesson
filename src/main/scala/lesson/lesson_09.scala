@@ -1,32 +1,30 @@
 package lesson
 
-
 import torch.*
 
-
 object lesson_09 {
-
 
 //  @main
   def main(): Unit = {
 
-
-    //02
+    // 02
     // 创建一个张量
-    val t = torch.arange(end =12, dtype = torch.float32).view(3, 4)
+    val t = torch.arange(end = 12, dtype = torch.float32).view(3, 4)
     println(f"张量 t:\n ${t}")
     println(f"形状: ${t.shape}")
     println(f"步幅: ${t.strides()}")
 
-    //03
+    // 03
     val t_transposed = t.t()
     println(f"\n转置后的张量 t_transposed:\n ${t_transposed}")
     println(f"形状: ${t_transposed.shape}")
     println(f"步幅: ${t_transposed.strides()}")
     println(f"t_transposed 是否连续？ ${t_transposed.is_contiguous()}") // 输出: False
-    println(f"t_transposed 是否与 t 共享存储？ ${t_transposed.storage().data_ptr() == t.storage().data_ptr()}") // 输出: True
+    println(
+      f"t_transposed 是否与 t 共享存储？ ${t_transposed.storage().data_ptr() == t.storage().data_ptr()}"
+    ) // 输出: True
 
-    //04
+    // 04
     // 这会引发 RuntimeError，因为 t_transposed 不连续
     // flat_view = t_transposed.view(-1)
 
@@ -34,13 +32,15 @@ object lesson_09 {
     val t_contiguous_copy = t_transposed.contiguous()
     println(f"\n连续副本是否连续？ ${t_contiguous_copy.is_contiguous()}") // 输出: True
     println(f"连续副本的步幅: ${t_contiguous_copy.strides()}") // 输出: (3, 1)
-    println(f"存储共享？ ${t_contiguous_copy.storage().data_ptr() == t_transposed.storage().data_ptr()}") // 输出: False (这是一个副本)
+    println(
+      f"存储共享？ ${t_contiguous_copy.storage().data_ptr() == t_transposed.storage().data_ptr()}"
+    ) // 输出: False (这是一个副本)
 
     // 现在视图可以工作了
     val flat_view = t_contiguous_copy.view(-1)
     println(f"展平视图: {flat_view}")
 
-    //05
+    // 05
     // 需要梯度的输入张量
     val a = torch.tensor(Seq(2.0, 3.0), requires_grad = true)
     // 操作 1: 乘以 3
@@ -55,7 +55,7 @@ object lesson_09 {
     println(f"Tensor c: requires_grad=${c.requires_grad}, grad_fn=${c.grad_fn}")
     // 预期输出: 张量 c: requires_grad=True, grad_fn=<MeanBackward0 object at 0x...>
 
-    //06
+    // 06
     // 示例设置
     val w = torch.randn(Seq(5, 3), requires_grad = true)
     val x2 = torch.randn(1, 5)
@@ -71,7 +71,7 @@ object lesson_09 {
     println(w.grad.get.shape)
     // 输出: torch.Size([5, 3])
 
-    //07
+    // 07
     // 我们需要中间张量来检查它们的 grad_fn
     val w2 = torch.randn(Seq(5, 3), requires_grad = true)
     val x3 = torch.randn(1, 5)
@@ -88,8 +88,7 @@ object lesson_09 {
     println(f"x3.grad_fn: ${x3.grad_fn}")
     // 输出: x3.grad_fn: None
 
-
-    //08
+    // 08
     // 假设已定义 model、optimizer、criterion、dataloader
 
 //    for((inputs, targets) <- dataloader){
@@ -106,11 +105,9 @@ object lesson_09 {
 //      // 4. 使用计算出的梯度更新模型参数
 //      optimizer.step()
 
-
-
-    //01
+    // 01
     // 创建一个张量
-    val x = torch.arange(end =12, dtype = torch.float32)
+    val x = torch.arange(end = 12, dtype = torch.float32)
     println(f"原始张量 x: ${x}")
 
     // 存储是一个包含12个浮点数的一维数组

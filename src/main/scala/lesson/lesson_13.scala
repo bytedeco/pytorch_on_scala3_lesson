@@ -1,23 +1,19 @@
 package lesson
 
-import org.bytedeco.javacpp.{FloatPointer, PointerScope}
-import org.bytedeco.pytorch
-import org.bytedeco.pytorch.global.torch as torchNative
-import org.bytedeco.pytorch.*
 import torch.Device.{CPU, CUDA}
 import torch.internal.NativeConverters.{fromNative, toNative}
 import torch.nn.modules.{HasParams, TensorModule}
 import torch.nn.{modules, functional as F}
 import torch.{Tensor, *}
 
-
-
 // 定义一个简单的 CNN 模型
-class SimpleCNN[ParamType <: FloatNN: Default]  extends TensorModule[ParamType] with HasParams[ParamType] {
+class SimpleCNN[ParamType <: FloatNN: Default]
+    extends TensorModule[ParamType]
+    with HasParams[ParamType] {
 
-  val conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1)
+  val conv1 = nn.Conv2d(3, 16, kernel_size = 3, stride = 1, padding = 1)
   val relu = nn.ReLU()
-  val pool = nn.MaxPool2d(kernel_size=2, stride=2)
+  val pool = nn.MaxPool2d(kernel_size = 2, stride = 2)
   val fc1 = nn.Linear(16 * 16 * 16, 10) // 假设输入图像为 32x32
   override def apply(x: Tensor[ParamType]): Tensor[ParamType] = forward(x)
 
@@ -29,7 +25,6 @@ class SimpleCNN[ParamType <: FloatNN: Default]  extends TensorModule[ParamType] 
   }
 }
 object lesson_13 {
-
 
   //  @main
   def main(): Unit = {
@@ -69,12 +64,9 @@ object lesson_13 {
 
     println(s"模型已导出到 $onnx_model_path")
 
-
   }
 
 }
-
-
 
 //class ColumnParallelLinear[ParamType <: FloatNN: Default](input_size: Int, output_size: Int, bias: Boolean = true) extends nn.Module {
 //

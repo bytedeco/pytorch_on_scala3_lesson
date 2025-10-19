@@ -43,27 +43,36 @@ object SimpleCPPs {
 
   def Usage(msg: String): Unit = {
     if (msg != null) System.err.println(msg)
-    System.err.println("Usage: java "+ " [options]")
+    System.err.println("Usage: java " + " [options]")
     System.err.println("\t-v Enable verbose logging")
     System.err.println("\t-r [model repository absolute path]")
     System.exit(1)
   }
 
-  def CompareResult(output0_name: String, output1_name: String, input0: IntPointer, input1: IntPointer, output0: IntPointer, output1: IntPointer): Unit = {
+  def CompareResult(
+      output0_name: String,
+      output1_name: String,
+      input0: IntPointer,
+      input1: IntPointer,
+      output0: IntPointer,
+      output1: IntPointer
+  ): Unit = {
     for (i <- 0 until 16) {
       System.out.println(input0.get(i) + " + " + input1.get(i) + " = " + output0.get(i))
       System.out.println(input0.get(i) + " - " + input1.get(i) + " = " + output1.get(i))
-      if ((input0.get(i) + input1.get(i)) != output0.get(i)) FAIL("incorrect sum in " + output0_name)
-      if ((input0.get(i) - input1.get(i)) != output1.get(i)) FAIL("incorrect difference in " + output1_name)
+      if ((input0.get(i) + input1.get(i)) != output0.get(i))
+        FAIL("incorrect sum in " + output0_name)
+      if ((input0.get(i) - input1.get(i)) != output1.get(i))
+        FAIL("incorrect difference in " + output1_name)
     }
   }
 
   def GenerateInputData(input0_data: Array[IntPointer], input1_data: Array[IntPointer]): Unit = {
-    input0_data(0) = new IntPointer(16l)
-    input1_data(0) = new IntPointer(16l)
+    input0_data(0) = new IntPointer(16L)
+    input1_data(0) = new IntPointer(16L)
     for (i <- 0 until 16) {
-      input0_data(0).put(i*1l, 2)
-      input1_data(0).put(i*1l, 1 * i)
+      input0_data(0).put(i * 1L, 2)
+      input1_data(0).put(i * 1L, 1 * i)
     }
   }
 
@@ -81,7 +90,7 @@ object SimpleCPPs {
     val p0 = Array[IntPointer]()
     val p1 = Array[IntPointer]()
     GenerateInputData(p0, p1)
-    var input0_data: BytePointer  = p0(0).getPointer(classOf[BytePointer])
+    var input0_data: BytePointer = p0(0).getPointer(classOf[BytePointer])
     var input1_data: BytePointer = p1(0).getPointer(classOf[BytePointer])
     val shape0 = new LongPointer(2)
     val shape1 = new LongPointer(2)
