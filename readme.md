@@ -14,7 +14,7 @@
 ### 🌟🌟lesson 04 How to use torch layer loss function and activation 
 ### 🌟🌟lesson 05 How to use TensorDataset and DataLoader
 ### 🌟🌟lesson 06 How to use Optimizer and training circle
-### 🌟🌟lesson 07 ow to training the torch model 
+### 🌟🌟lesson 07 How to training the torch model 
 ### 🌟🌟lesson 08 How to control the training and check the error
 ### 🌟🌟lesson 09 Pytorch Inner Autograd 
 ### 🌟🌟lesson 10 How to use Transformer and Attention
