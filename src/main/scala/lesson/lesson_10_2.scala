@@ -46,7 +46,7 @@ class ODEFunc[ParamType <: FloatNN: Default](hidden_dim: Int) extends TensorModu
 class SimpleGNNLayer[ParamType <: FloatNN: Default](in_features: Int, out_features: Int) extends TensorModule[ParamType]  with HasParams[ParamType] {
 
   // 定义可学习的权重矩阵
-  val linear = nn.Linear(in_features, out_features, bias = False)
+  val linear = nn.Linear(in_features, out_features, bias = false)
   // 初始化权重（可选但通常是好的做法）
   nn.init.xavier_uniform_(linear.weight)
 
@@ -68,21 +68,21 @@ class SimpleGNNLayer[ParamType <: FloatNN: Default](in_features: Int, out_featur
 
     // 1. 为edge_index表示的邻接矩阵添加自环
     // 创建节点索引张量 [0, 1, ..., num_nodes-1]
-    val self_loops = torch.arange(0, num_nodes, device = x.device).unsqueeze(0)
-    val self_loops = self_loops.repeat(2, 1) // 形状 [2, num_nodes]
+    var self_loops = torch.arange(0, num_nodes, device = input.device).unsqueeze(0)
+    val self_loopss = self_loops.repeat(2, 1) // 形状 [2, num_nodes]
     // 将原始边与自环拼接
-    val edge_index_with_self_loops = torch.cat([edge_index, self_loops], dim = 1)
+    val edge_index_with_self_loops = torch.cat(Seq(edge_index, self_loopss.to(torch.int64)), dim = 1)
 
     // 提取源节点和目标节点索引
     val row = edge_index_with_self_loops(0)
     val col = edge_index_with_self_loops(1)
     // 2. 线性变换节点特征
-    val x_transformed = linear(x) // 形状: [num_nodes, out_features]
+    val x_transformed = linear(input) // 形状: [num_nodes, out_features]
 
     // 3. 聚合来自邻居（包括自身）的特征
     // 我们希望对每个目标节点（col）求和源节点（row）的特征
     // 使用零初始化输出张量
-    val aggregated_features = torch.zeros(num_nodes, out_features, device = x.device)
+    val aggregated_features = torch.zeros(Seq(num_nodes, out_features), device = input.device)
 
     // 使用 index_add_ 进行高效聚合（散列求和）
     // 将 x_transformed[row] 的元素添加到 aggregated_features 中由 col 指定的索引处
@@ -93,7 +93,7 @@ class SimpleGNNLayer[ParamType <: FloatNN: Default](in_features: Int, out_featur
     // 在此示例中，我们使用ReLU
     val output_features = F.relu(aggregated_features)
 
-    output_features
+    output_features.to(this.paramType)
 
   }
 }
@@ -123,7 +123,7 @@ object lesson_10_2 {
       println(s"已实例化层: $gnn_layer")
 
       // 将数据通过该层
-      val output_node_features = gnn_layer(x, edge_index)
+      val output_node_features = gnn_layer(x.to(torch.float32), edge_index)
 
       // 检查输出形状
       println(s"\n输入节点特征形状: ${x.shape}")
@@ -135,7 +135,7 @@ object lesson_10_2 {
 
       print("\n数据已成功通过自定义GNN层。")
       // 显示节点0的前几个输出特征
-      println(s"节点0的输出特征（前5维）: ${output_node_features(0, 0 until 5)}")
+      println(s"节点0的输出特征（前5维）: ${output_node_features(0, 0 untils 5)}")
 
   }
 }

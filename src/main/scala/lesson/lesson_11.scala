@@ -26,14 +26,14 @@ import scala.collection.mutable.{ListBuffer, SortedMap as OrderedDict}
 import scala.collection.{mutable, Set as KeySet}
 import scala.util.*
 
-class MyResidualBlock[ParamType <: FloatNN: Default](dim: Int, drop_prob: Double = 0) extends nn.Module{
+class MyResidualBlock[ParamType <: FloatNN: Default](dim: Int, drop_prob: Double = 0)  extends TensorModule[ParamType]  with HasParams[ParamType] {
 
   val norm1 = nn.LayerNorm(dim)
   val linear1 = nn.Linear(dim, dim * 4)
   val activation = nn.GELU()
   val linear2 = nn.Linear(dim * 4, dim)
   // 随机深度层
-  val drop_path =  if drop_prob > 0 then DropPath(drop_prob) else nn.Identity()
+//  val drop_path =  if drop_prob > 0 then DropPath(drop_prob) else nn.Identity()
 
   override def apply(input: Tensor[ParamType]): Tensor[ParamType] = forward(input)
 
@@ -44,7 +44,7 @@ class MyResidualBlock[ParamType <: FloatNN: Default](dim: Int, drop_prob: Double
     x = activation(x)
     x = linear2(x)
     // 将 DropPath 应用于残差函数的输出
-    x = shortcut + drop_path(x)
+    x = shortcut + x //drop_path(x)
     x
   }
 }
@@ -114,8 +114,8 @@ object lesson_11 {
     //在循环前将梯度初始化为零
 
     for (((inputs, targets),index) <- data_loader.zipWithIndex){
-      val outputs = model(inputs)
-      val loss = nn.functional.mse_loss(outputs, targets)
+      val outputs = model(inputs.to(torch.float32))
+      val loss = nn.functional.mse_loss(outputs, targets.to(torch.float32))
 
       // --- 累积前归一化损失 ---
       // 将损失按累积步数进行缩放
@@ -146,7 +146,7 @@ object lesson_11 {
     // 假设模型、优化器、数据加载器已定义
     val model = nn.Linear(10, 1) // 示例模型
     val optimizer = torch.optim.Adam(model.parameters(), lr = 1e-3)
-    val data_loader = Seq(torch.randn(16, 10), torch.randn(16, 1)) // 示例数据
+    val data_loader = Seq((torch.randn(16, 10), torch.randn(16, 1))) // 示例数据
 
     val MAX_GRAD_NORM = 1.0 // 定义裁剪阈值
 
@@ -155,8 +155,8 @@ object lesson_11 {
     for ((inputs, targets) <- data_loader){
       optimizer.zero_grad()
 
-      val outputs = model(inputs)
-      val loss = nn.functional.mse_loss(outputs, targets)
+      val outputs = model(inputs.to(torch.float32))
+      val loss = nn.functional.mse_loss(outputs, targets.to(torch.float32))
 
       loss.backward() // 计算梯度
 
@@ -195,7 +195,7 @@ object lesson_11 {
     // 示例设置
     val model_params = torch.randn(Seq(10, 5), requires_grad = true)
 
-    val optimizer3 = SGD(model_params, lr = 0.1)
+    val optimizer3 = SGD(Seq(model_params), lr = 0.1)
 
     // 余弦退火：将学习率从0.1退火到0，持续100个epoch
     val scheduler = CosineAnnealingLR(optimizer, T_max = 100, eta_min = 0)
@@ -213,7 +213,7 @@ object lesson_11 {
     // 示例设置
     val model_params3 = torch.randn( Seq(10, 5), requires_grad = true)
 
-    val optimizer4 = AdamW(model_params, lr = 0.01) // 初始学习率
+    val optimizer4 = AdamW(Seq(model_params), lr = 0.01) // 初始学习率
 
     // 带热启动的余弦退火：
     // 每50个回合重启一次 (T_0=50)。

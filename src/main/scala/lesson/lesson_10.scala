@@ -13,7 +13,8 @@ import scala.collection.{mutable, Set as KeySet}
 import scala.util.{Failure, Random, Success, Try, Using}
 import torch.Device.{CPU, CUDA}
 import torch.internal.NativeConverters.{fromNative, toNative}
-import torch.{&&, ---, ::, BFloat16, DType, Default, Float32, FloatNN, Int64, Slice, Tensor, nn}
+import torch.nn.modules.graph.GraphData
+import torch.{&&, ---, ::, BFloat16, Bool, DType, Default, Float32, Float64, FloatNN, Int64, Slice, Tensor, nn, optim}
 import torch.nn.{modules, functional as F}
 import torch.nn.modules.{HasParams, TensorModule}
 import torch.optim.Adam
@@ -27,7 +28,6 @@ import torch.utils.data.sampler.RandomSampler
 
 import scala.collection.mutable.SortedMap as OrderedDict
 import torch.numpy.TorchNumpy as np
-import torch.optim
 
 import javax.print.AttributeException
 class PositionWiseFeedForward[ParamType <: FloatNN: Default](d_model: Int, d_ff: Int, dropout_p: Float = 0.1) extends TensorModule[ParamType]  with HasParams[ParamType] {
@@ -127,17 +127,18 @@ class AddNorm[ParamType <: FloatNN: Default](normalized_shape: Int, dropout: Flo
   }
 }
 
-def scaled_dot_product_attention[ParamType <: FloatNN: Default](q: Tensor[ParamType], k: Tensor[ParamType], v: Tensor[ParamType], mask: Tensor[ParamType] | Option[Tensor[ParamType]] = None):(Tensor[ParamType], Tensor[ParamType]) = {
+def scaled_dot_product_attention[ParamType <: FloatNN: Default](q: Tensor[ParamType], k: Tensor[ParamType], v: Tensor[ParamType], mask: Tensor[ParamType] | Option[Tensor[ParamType]] = None):(Tensor[Float64], Tensor[Float64]) = {
   """计算缩放点积注意力"""
   val d_k = q.size(-1) // 获取最后一个维度（K的嵌入维度）
   // Q与K转置的矩阵乘法: (..., 查询序列长度, d_k) x (..., 键序列长度, d_k) -> (..., 查询序列长度, 键序列长度)
-  var scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(d_k) // (..., 查询序列长度, 键序列长度)
+  val score = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(d_k)// (..., 查询序列长度, 键序列长度)
 
+  var scores: Tensor[Float64] = score.to(torch.float64)
   // 应用掩码（如果提供），将掩码位置设置为一个非常小的数字 (-1e9)
   mask match {
     case Some(m) =>
       val mask_scores = scores.masked_fill(m == 0, -1e9) //.to(torch.float64)
-      scores = mask_scores
+      scores = mask_scores //.to(dtype = torch.float64)
     case t: Tensor[ParamType] =>
       val mask_scores = scores.masked_fill(t == 0, -1e9) //.to(torch.float64)
       scores = mask_scores
@@ -149,7 +150,7 @@ def scaled_dot_product_attention[ParamType <: FloatNN: Default](q: Tensor[ParamT
   // 权重与V的矩阵乘法: (..., 查询序列长度, 键序列长度) x (..., 值序列长度, d_v) -> (..., 查询序列长度, d_v)
   // 注意: 键序列长度 == 值序列长度
   val output = torch.matmul(attn_weights, v) // (..., 查询序列长度, d_v)
-  (output, attn_weights)
+  (output.to(torch.float64), attn_weights.to(torch.float64))
 }
 
 class MultiHeadAttention[ParamType <: FloatNN: Default](d_model: Int,num_heads: Int, dropout: Float = 0.1, max_len: Int = 5000) extends TensorModule[ParamType]  with HasParams[ParamType] {
@@ -211,7 +212,7 @@ class MultiHeadAttention[ParamType <: FloatNN: Default](d_model: Int,num_heads: 
     // 注意力权重: (批次大小, 头数, 查询序列长度, 键序列长度)
     val (attention_output, attn_weights) = scaled_dot_product_attention(new_q, new_k, new_v, mask)
     // 4. 合并头
-    var output = combine_heads(attention_output) // (批次大小, 查询序列长度, d_model)
+    var output = combine_heads(attention_output.to(this.paramType)) // (批次大小, 查询序列长度, d_model)
     // 5. 最终线性层
     output = W_o(output) // (批次大小, 查询序列长度, d_model)
 
@@ -257,8 +258,8 @@ class PositionalEncoding[ParamType <: FloatNN: Default](d_model: Int, dropout: F
     // 将位置编码添加到输入嵌入
     // self.pe 形状为 (1, max_len, d_model)。我们取 x 的序列长度范围内的切片。
     // x 的形状为 (批次大小, 序列长度, d_model)
-    var x = input + pe(---, 0.::(input.size(1)), ::)
-    dropoutLayer(x)
+    val x = input + pe(---, 0.::(input.size(1)), ::)
+    dropoutLayer(x.to(this.paramType))
   }
 }
 
@@ -291,7 +292,7 @@ class Transformer[ParamType <: FloatNN: Default](num_encoder_layers: Int, num_de
     val mask = (seq != pad_token_idx).unsqueeze(1).unsqueeze(2)
     mask
 
-  def create_look_ahead_mask(size: Int): Tensor[ParamType] =
+  def create_look_ahead_mask(size: Int): Tensor[Bool] =
     // 创建一个上三角矩阵用于掩盖未来词元
     // 输出掩码形状: (1, 1, 大小, 大小)
     val mask = torch.triu(torch.ones(size, size), diagonal = 1).bools()
@@ -305,11 +306,12 @@ class Transformer[ParamType <: FloatNN: Default](num_encoder_layers: Int, num_de
     //源: (批次大小, 源序列长度)
     // 源掩码: (批次大小, 1, 1, 源序列长度)
     val src_emb = encoder_embedding(src) * math.sqrt(d_model)
-    val src_pos_emb = positional_encoding(src_emb)
-    val enc_output = dropout(src_pos_emb)
+    val src_pos_emb = positional_encoding(src_emb.to(this.paramType))
+    var enc_output = dropout(src_pos_emb)
 
-    for(layer <- encoder_layers)
-          enc_output = layer(enc_output, src_mask)
+    for(layer <- encoder_layers.iterator)
+      enc_output = layer.asInstanceOf[EncoderLayer[ParamType]](enc_output.to(this.paramType), src_mask)
+//          enc_output = layer(enc_output.to(this.paramType), src_mask)
     enc_output //(批次大小, 源序列长度, d_model)
 
   def decode(tgt: Tensor[ParamType], encoder_output: Tensor[ParamType],
@@ -319,15 +321,16 @@ class Transformer[ParamType <: FloatNN: Default](num_encoder_layers: Int, num_de
     // 前瞻掩码: (批次大小, 1, 目标序列长度, 目标序列长度)
     // 填充掩码: (批次大小, 1, 1, 源序列长度) # 在编码器-解码器注意力中使用
     var tgt_emb = decoder_embedding(tgt) * math.sqrt(d_model)
-    var tgt_pos_emb = positional_encoding(tgt_emb)
+    var tgt_pos_emb = positional_encoding(tgt_emb.to(this.paramType))
     var dec_output = dropout(tgt_pos_emb)
 
-    tgt_emb = decoder_embedding(tgt) * math.sqrt(d_model)
-    tgt_pos_emb = positional_encoding(tgt_emb)
+    val sq = torch.tensor(math.sqrt(d_model),dtype = torch.float64)
+    tgt_emb = decoder_embedding(tgt).*(sq)
+    tgt_pos_emb = positional_encoding(tgt_emb.to(this.paramType))
     dec_output = dropout(dec_output)
 
     for(layer <- decoder_layers)
-      dec_output = layer(dec_output, encoder_output, look_ahead_mask, padding_mask)
+      dec_output = layer.asInstanceOf[DecoderLayer[ParamType]](dec_output, encoder_output, look_ahead_mask, padding_mask)
     dec_output // (批次大小, 目标序列长度, d_model)
 
   def apply(src: Tensor[ParamType], tgt: Tensor[ParamType]): Tensor[ParamType] = forward(src, tgt)
@@ -373,16 +376,16 @@ object lesson_10 {
     println(s"嵌入形状: ${input_embeddings.shape}")
 
     // 示例用法
-    val pos_encoder = PositionalEncoding(d_model, dropout = 0.1)
+    val pos_encoder = PositionalEncoding[Float64](d_model, dropout = 0.1)
     val final_input = pos_encoder(input_embeddings * math.sqrt(d_model)) // 在添加位置编码前对嵌入进行缩放
 
-    println("位置编码后的形状:", final_input.shape)
+    println(s"位置编码后的形状:  ${final_input.shape.mkString(",")}")
     // 注意：原始论文在添加位置编码前，会按 sqrt(d_model) 缩放嵌入。
 
     //03
     // 示例用法
     // 创建一个多头注意力实例
-    val mha = MultiHeadAttention(d_model = 512, num_heads = 8)
+    val mha = MultiHeadAttention[Float64](d_model = 512, num_heads = 8)
     // 在自注意力中，Q、K和V最初通常是同一个张量
     val query = final_input // 形状: (批次大小, 序列长度, d_model)
     val key = final_input // 形状: (批次大小, 序列长度, d_model)
@@ -396,7 +399,7 @@ object lesson_10 {
     //04
     // 示例：在多头注意力后应用加和归一化
     val dropout_rate = 0.1f
-    val add_norm1 = AddNorm(d_model, dropout_rate)
+    val add_norm1 = AddNorm[Float64](d_model, dropout_rate)
     // 'final_input' 是MHA层的输入
     val normed_attention_output = add_norm1(final_input, attention_result)
 
@@ -405,11 +408,11 @@ object lesson_10 {
     //05
     // 示例用法
     val d_ff = d_model * 4 // 常见做法
-    val ffn = PositionWiseFeedForward(d_model, d_ff, dropout_rate)
+    val ffn = PositionWiseFeedForward[Float64](d_model, d_ff, dropout_rate)
     val ffn_output = ffn(normed_attention_output)
 
     // 应用第二个加和归一化层
-    val add_norm2 = AddNorm(d_model, dropout_rate)
+    val add_norm2 = AddNorm[Float64](d_model, dropout_rate)
     // 'normed_attention_output' 是FFN的输入
     val encoder_layer_output = add_norm2(normed_attention_output, ffn_output)
 
@@ -419,7 +422,7 @@ object lesson_10 {
 
     //06
     // 示例实例化（参数仅作说明）
-    val transformer_model = Transformer(
+    val transformer_model = Transformer[Float64](
       num_encoder_layers = 6, num_decoder_layers = 6,
       d_model = 512, num_heads = 8, d_ff = 2048,
       input_vocab_size = 10000, target_vocab_size = 12000,
@@ -427,8 +430,8 @@ object lesson_10 {
     )
 
     // 用于形状检查的虚拟输入（假设批次大小为2）
-    val src_dummy = torch.randint(1, 10000, Seq(2, 100)) // (批次, 源长度)
-    val tgt_dummy = torch.randint(1, 12000, Seq(2, 120)) // (批次, 目标长度) - 例如右移的目标
+    val src_dummy = torch.randint(1, 10000, Seq(2, 100)).to(torch.float64) // (批次, 源长度)
+    val tgt_dummy = torch.randint(1, 12000, Seq(2, 120)).to(torch.float64) // (批次, 目标长度) - 例如右移的目标
 
     // 如果GPU可用，将模型和数据移至GPU
     // device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -460,15 +463,14 @@ object lesson_10 {
     // 创建因果遮罩（例如，用于解码器）
     // 遮罩需要根据注意力函数设置适当的维度
     // 对于 scaled_dot_product_attention，(SeqLen, SeqLen) 遮罩通常是可广播的
-    val causal_mask_bool = torch.triu(torch.ones(seq_len, seq_len, dtype = torch.bool), diagonal = 1)
+    val causal_mask_bool = torch.triu(torch.ones(Seq(seq_len, seq_len), dtype = torch.bool), diagonal = 1)
 
     // 使用 torch.nn.functional.scaled_dot_product_attention (PyTorch 2.0+)
     // 注意：此函数在内部处理重塑和缩放
     // 它期望布尔遮罩，其中 True 表示“遮盖掉”
-    try {
-      val output_sdpa = nn.functional.scaled_dot_product_attention(
-      query2, value2, attn_mask = causal_mask_bool, is_causal = false)
-    }
+    try 
+      val output_sdpa = nn.functional.scaled_dot_product_attention(query2,key2, value2, attn_mask = Some(causal_mask_bool.to(torch.float16)), is_causal = false)
+    
       //显式遮罩示例
     // 或者使用 is_causal=True 进行自动因果遮罩：
     // output_sdpa = nn.functional.scaled_dot_product_attention(query, key, value, is_causal=True)
@@ -495,18 +497,17 @@ object lesson_10 {
 
     // 边：(0 -> 1), (1 -> 0), (1 -> 2), (2 -> 1)
     // 表示为源节点和目标节点
-    val edge_index = torch.tensor(Seq(Seq(0, 1, 1, 2), // 源节点 
-       Seq(1, 0, 2, 1)), // 目标节点
-      dtype = torch.Int64)
+    // 源节点  // 目标节点
+    val edge_index = torch.tensor(Seq(Seq(0, 1, 1, 2), Seq(1, 0, 2, 1)),dtype = torch.int64)
 
     // 可选的边特征：4 条边，每条边 1 个特征
     val edge_attr = torch.tensor(Seq(Seq(0.5), Seq(0.5), Seq(0.8), Seq(0.8)), dtype = torch.float32)
 
     // 可选的节点标签（例如，用于节点分类）
-    val y = torch.tensor(Seq(0, 1, 0), dtype = torch.Int64)
+    val y = torch.tensor(Seq(0, 1, 0), dtype = torch.int64)
 
     // 创建 Data 对象
-    val graph_data = Data(x = x, edge_index = edge_index, edge_attr = edge_attr, y = y)
+    val graph_data = GraphData(x = x, edge_index = edge_index, edge_attr = edge_attr, y = y.to(torch.float32))
 
     val tagScalarsDict: Map[String, Double] = Map(
       "accuracy" -> 0.85,
@@ -520,6 +521,11 @@ object lesson_10 {
 
 }
 
+
+class GCNConv[ParamType <: FloatNN: Default](in_feats: Int, out_feats: Int, aggregator_type: String = "", feat_drop: Float = 0f,bias: Boolean = true) {
+
+  def apply(input: Tensor[ParamType], edge_index: Tensor[Int64]):Tensor[ParamType] = ???
+}
 class SimpleGCN[ParamType <: FloatNN: Default](num_node_features: Int, num_classes: Int, hidden_channels: Int) extends TensorModule[ParamType]  with HasParams[ParamType] {
 
   val conv1 = GCNConv(num_node_features, hidden_channels)
@@ -527,18 +533,24 @@ class SimpleGCN[ParamType <: FloatNN: Default](num_node_features: Int, num_class
 
   override def apply(input: Tensor[ParamType]): Tensor[ParamType] = ???
 
-  def apply(data: GraphData): Tensor[ParamType] = forward(data)
+  def apply(data: GraphData[ParamType]): Tensor[ParamType] = forward(data)
 
-  def forward(data: GraphData): Tensor[ParamType] = {
+  def forward(data: GraphData[ParamType]): Tensor[ParamType] = {
     var x = data.x
     val edge_index = data.edge_index
     x = conv1(x, edge_index)
     x = F.relu(x)
-    x = F.dropout(x, p = 0.5, training = self.training) // 经常使用 Dropout
+    x = F.dropout(x, p = 0.5, training = this.isTraining) // 经常使用 Dropout
     x = conv2(x, edge_index)
     // 对节点进行分类，通常使用 LogSoftmax
     F.log_softmax(x, dim = 1)
   }
+}
+
+
+class GATConv[ParamType <: FloatNN: Default](in_feats: Int, out_feats: Int, heads: Int , concat: Boolean = false, dropout: Float = 0f,bias: Boolean = true) {
+
+  def apply(input: Tensor[ParamType], edge_index: Tensor[Int64]):Tensor[ParamType] = ???
 }
 
 class SimpleGAT[ParamType <: FloatNN: Default](num_node_features: Int, num_classes: Int, hidden_channels: Int, heads: Int = 8) extends TensorModule[ParamType]  with HasParams[ParamType] {
@@ -548,26 +560,35 @@ class SimpleGAT[ParamType <: FloatNN: Default](num_node_features: Int, num_class
   val conv1 = GATConv(num_node_features, hidden_channels, heads = heads, dropout = 0.6)
   // 多头注意力的输出特征为 heads * hidden_channels
   // 对于最后一层，通常平均各头或使用单头
-  val conv2 = GATConv(hidden_channels * heads, num_classes, heads = 1, concat = False, dropout = 0.6)
+  val conv2 = GATConv(hidden_channels * heads, num_classes, heads = 1, concat = false, dropout = 0.6)
 
   override def apply(input: Tensor[ParamType]): Tensor[ParamType] = ???
 
-  def apply(data: GraphData): Tensor[ParamType] = forward(data)
+  def apply(data: GraphData[ParamType]): Tensor[ParamType] = forward(data)
 
-  def forward(data: GraphData): Tensor[ParamType] = {
+  def forward(data: GraphData[ParamType]): Tensor[ParamType] = {
     var x = data.x
     val edge_index = data.edge_index
-    x = F.dropout(x, p = 0.6, training = self.training) // 对输入特征应用 Dropout
+    x = F.dropout(x, p = 0.6, training = this.isTraining) // 对输入特征应用 Dropout
     x = conv1(x, edge_index)
     x = F.elu(x) // ELU 激活在 GAT 中很常见
-    x = F.dropout(x, p = 0.6, training = self.training)
+    x = F.dropout(x, p = 0.6, training = this.isTraining)
     x = conv2(x, edge_index)
     F.log_softmax(x, dim = 1)
   }
 }
 
-
-
+// in_feats,
+//                 out_feats,
+//                 aggregator_type,
+//                 feat_drop=0.,
+//                 bias=True,
+//                 norm=None,
+//                 activation=None
+class SAGEConv[ParamType <: FloatNN: Default](in_feats: Int, out_feats: Int, aggregator_type: String = "", feat_drop: Float = 0f,bias: Boolean = true) {
+  
+  def apply(input: Tensor[ParamType], edge_index: Tensor[Int64]):Tensor[ParamType] = ???
+}
 
 class SimpleGraphSAGE[ParamType <: FloatNN: Default](num_node_features: Int, num_classes: Int, hidden_channels: Int) extends TensorModule[ParamType]  with HasParams[ParamType] {
 
@@ -577,14 +598,14 @@ class SimpleGraphSAGE[ParamType <: FloatNN: Default](num_node_features: Int, num
 
   override def apply(input: Tensor[ParamType]): Tensor[ParamType] = ???
 
-  def apply(data: GraphData): Tensor[ParamType] = forward(data)
+  def apply(data: GraphData[ParamType]): Tensor[ParamType] = forward(data)
 
-  def forward(data: GraphData): Tensor[ParamType] = {
+  def forward(data: GraphData[ParamType]): Tensor[ParamType] = {
     var x = data.x
     val edge_index = data.edge_index
     x = conv1(x, edge_index)
     x = F.relu(x)
-    x = F.dropout(x, p = 0.5, training = self.training) // 经常使用 Dropout
+    x = F.dropout(x, p = 0.5, training = this.isTraining) // 经常使用 Dropout
     x = conv2(x, edge_index)
     // 对节点进行分类，通常使用 LogSoftmax
     F.log_softmax(x, dim = 1)
