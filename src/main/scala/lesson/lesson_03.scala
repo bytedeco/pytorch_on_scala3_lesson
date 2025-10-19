@@ -1,29 +1,13 @@
 package lesson
 
-import org.bytedeco.javacpp.{FloatPointer, PointerScope}
-import org.bytedeco.pytorch
-import org.bytedeco.pytorch.global.torch as torchNative
-import org.bytedeco.pytorch.*
+
 import torch.Device.{CPU, CUDA}
 import torch.internal.NativeConverters.{fromNative, toNative}
 import torch.nn.functional as F
 import torch.nn.modules.HasParams
 import torch.numpy.TorchNumpy as np
-import torch.optim.Adam
-import torch.utils.data.dataloader.*
-import torch.utils.data.datareader.ChunkDataReader
-import torch.utils.data.dataset.*
-import torch.utils.data.dataset.custom.{FashionMNIST, MNIST}
-import torch.utils.data.sampler.RandomSampler
-import torch.utils.data.*
 import torch.*
 
-import java.net.URL
-import java.nio.file.{Files, Path, Paths}
-import java.util.zip.GZIPInputStream
-import scala.collection.mutable.SortedMap
-import scala.collection.{mutable, Set as KeySet}
-import scala.util.*
 
 object lesson_03 {
 

@@ -1,5 +1,4 @@
-package lesson
-
+//
 //package lesson
 //
 //import org.bytedeco.pytorch
@@ -15,7 +14,8 @@ package lesson
 //import scala.util.{Failure, Random, Success, Try, Using}
 //import torch.Device.{CPU, CUDA}
 //import torch.internal.NativeConverters.{fromNative, toNative}
-//import torch.{&&,Device, ---, ::, BFloat16, DType, Default, Float32, FloatNN, Int64, Slice, Tensor, nn}
+//import torch.nn.loss.LossFunc
+//import torch.{&&, ---, ::, BFloat16, DType, Default, Device, Float32, FloatNN, Int64, Slice, Tensor, nn}
 //import torch.nn.{modules, functional as F}
 //import torch.nn.modules.{HasParams, TensorModule}
 //import torch.optim.Adam
@@ -27,9 +27,10 @@ package lesson
 //import torch.utils.data.dataset.*
 //import torch.utils.data.sampler.RandomSampler
 //import torch.utils.tensorboard.SummaryWriter
+//
 //import scala.collection.mutable.SortedMap as OrderedDict
 //import torch.numpy.TorchNumpy as np
-//import torch.optim as optim
+//import torch.optim
 //
 //class SimpleMLP2[ParamType <: FloatNN: Default] extends TensorModule[ParamType]  with HasParams[ParamType] {
 //
@@ -57,7 +58,7 @@ package lesson
 //
 //  // 假设模型、val_dataloader、loss_fn 已定义
 //
-//  def evaluate_model(model: nn.Module, val_dataloader: DataLoader[Float32], loss_fn: nn.Module, device: Device): (Double, Float) = {
+//  def evaluate_model(model: nn.Module, val_dataloader: DataLoader[Float32], loss_fn: LossFunc, device: Device): (Double, Float) = {
 //    model.eval() // 设置模型为评估模式
 //    var running_loss = 0.0
 //    var correct_predictions = 0
@@ -69,7 +70,7 @@ package lesson
 //        // 前向传播
 //        var outputs = model(inputs)
 //        // 计算损失
-//        var loss = loss_fn(outputs, labels)
+//        var loss = loss_fn(outputs)(labels)
 //        // --- 记录步骤 ---
 //        running_loss += loss.item() * inputs.size(0)
 //        val _, predicted = torch.max(outputs.data, 1)
@@ -92,7 +93,7 @@ package lesson
 //
 //  // 假设模型、train_dataloader、loss_fn、optimizer 已定义
 //
-//  def train_one_epoch[D <: FloatNN : Default](model: nn.Module, train_dataloader: DataLoader[D], loss_fn: nn.Module, optimizer: optim.Optimizer, device: Device): (Double, Float) = {
+//  def train_one_epoch[D <: FloatNN : Default](model: nn.Module, train_dataloader: DataLoader[D], loss_fn: LossFunc, optimizer: optim.Optimizer, device: Device): (Double, Float) = {
 //    model.train()// 设置模型为训练模式
 //    var running_loss = 0.0
 //    var correct_predictions = 0
@@ -105,7 +106,7 @@ package lesson
 //      // 2. 前向传播
 //      var outputs = model(inputs)
 //      // 3. 计算损失
-//      var loss = loss_fn(outputs, labels)
+//      var loss:Tensor[D] = loss_fn(outputs)(labels)
 //      // 4. 反向传播
 //      loss.backward()
 //      // 5. 优化器步骤

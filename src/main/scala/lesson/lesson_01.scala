@@ -1,32 +1,13 @@
 package lesson
 
-import org.bytedeco.javacpp.{FloatPointer, PointerScope}
-import org.bytedeco.pytorch
-import org.bytedeco.pytorch.global.torch as torchNative
-import org.bytedeco.pytorch.*
-import torch.Device.{CPU, CUDA}
-import torch.internal.NativeConverters.{fromNative, toNative}
-import torch.nn.functional as F
-import torch.nn.modules.HasParams
-import torch.numpy.TorchNumpy as np
-import torch.optim.Adam
-import torch.utils.data.dataloader.*
-import torch.utils.data.datareader.ChunkDataReader
-import torch.utils.data.dataset.*
-import torch.utils.data.dataset.custom.{FashionMNIST, MNIST}
-import torch.utils.data.sampler.RandomSampler
-import torch.utils.data.*
-import torch.*
 
-import java.net.URL
-import java.nio.file.{Files, Path, Paths}
-import java.util.zip.GZIPInputStream
-import scala.collection.mutable.SortedMap
-import scala.collection.{mutable, Set as KeySet}
+import torch.Device.{CPU, CUDA}
+import torch.nn.functional as F
+import torch.numpy.TorchNumpy as np
 import scala.util.*
 object lesson_01 {
 
-  @main
+//  @main
   def mains(): Unit ={
     println(s"PyTorch Version: {torch.__version__}")
 
@@ -36,9 +17,10 @@ object lesson_01 {
 
     if cuda_available then
       // 获取可用 GPU 的数量
-      print(f"Number of GPUs: {torch.cuda.device_count()}")
+      print(f"Number of GPUs: ${torch.cuda.device_count()}")
+      println(s"Current GPU: ${torch.cuda.current_device}")
       //获取当前 GPU 的名称
-      print(f"Current GPU Name: {torch.cuda.get_device_name(torch.cuda.current_device())}")
+//      print(f"Current GPU Name: ${torch.cuda.get_device_name(torch.cuda.current_device())}")
     else
       print("PyTorch is using CPU.")
 
@@ -54,13 +36,22 @@ object lesson_01 {
 
 
     //02
-//    val data_numpy = np.array[Double,Float](Array(5.0, 6.0,7.0, 8.0)) // np.array(Seq(Seq(5.0, 6.0), Seq(7.0, 8.0)))
-//    val tensor_from_numpy = torch.tensor(data_numpy)
-//
-//    println("\n从 NumPy 数组生成的张量:")
-//    println(tensor_from_numpy)
-//    println(s"数据类型: ${tensor_from_numpy.dtype}")
-//    println(s"形状: ${tensor_from_numpy.shape}")
+    val data_numpy = np.array[Double,Double](Array(5.0, 6.0,7.0, 8.0)) // np.array(Seq(Seq(5.0, 6.0), Seq(7.0, 8.0)))
+    data_numpy.printArray()
+
+    val rand_numpy = np.rand(Array(4,3))
+    rand_numpy.printArray()
+    val tensor_from_numpy = torch.tensor(rand_numpy)
+    println("\n从 NumPy 数组生成的张量:")
+    println(tensor_from_numpy)
+    println(s"数据类型: ${tensor_from_numpy.dtype}")
+    println(s"形状: ${tensor_from_numpy.shape}")
+
+    val tensor_from_numpy_2 = torch.tensor(data_numpy)
+    println("\n从 NumPy 数组 numpy_array2 创建的张量：")
+    println(tensor_from_numpy_2)
+    println(s"数据类型: ${tensor_from_numpy_2.dtype}")
+    println(s"形状: ${tensor_from_numpy_2.shape}")
 
 
     //03
@@ -255,39 +246,46 @@ object lesson_01 {
 
     //14
 
-//    val numpy_array = np.array(Seq(Seq(1, 2), Seq(3, 4)), dtype = np.float32)
-//    println(s"NumPy 数组:\n ${numpy_array}")
-//    println(s"NumPy 数组类型: ${numpy_array.dtype}")
-//
-//    // 将 NumPy 数组转换为 PyTorch 张量
-//    val pytorch_tensor = torch.from_numpy(numpy_array)
-//    println(s"\nPyTorch 张量:\n ${pytorch_tensor}")
-//    println(f"PyTorch 张量类型: ${pytorch_tensor.dtype}")
+    import torch.numpy.enums.DType as npDType
+//    val numpy_array = np.array(Seq(Seq(1, 2), Seq(3, 4)))//, dType = npDType.Float32)
+    val numpy_array = np.rand(Array(2,2)) //, dType = npDType.Float32)
+
+    numpy_array.printArray()
+    println(s"NumPy 数组:\n ${numpy_array}")
+    println(s"NumPy 数组类型: ${numpy_array.getDType}")
+
+    // 将 NumPy 数组转换为 PyTorch 张量
+    val pytorch_tensor = torch.from_numpy(numpy_array)
+    println(s"\nPyTorch 张量:\n ${pytorch_tensor}")
+    println(f"PyTorch 张量类型: ${pytorch_tensor.dtype}")
 
 
 
     //15
 
     //16  //Unsupported dtype for numpy conversion: float64
-//    val cpu_tensor = torch.tensor(Seq(Seq(10.0, 20.0), Seq(30.0, 40.0)))
-//    println(f"原始 PyTorch 张量 (CPU):\n ${cpu_tensor}")
-//
-//    // 将张量转换为 NumPy 数组
-//    val numpy_array_converted = cpu_tensor.numpy()
-//    println(f"\n转换后的 NumPy 数组:\n{ $numpy_array_converted}")
-////    println(s"NumPy 数组类型: ${numpy_array_converted.dtype}")
+    val cpu_tensor = torch.tensor(Seq(Seq(10.0, 20.0), Seq(30.0, 40.0)))
+    println(f"原始 PyTorch 张量 (CPU):\n ${cpu_tensor}")
+
+    // 将张量转换为 NumPy 数组
+    val numpy_array_converted = cpu_tensor.numpy()
+    println(f"\n转换后的 NumPy 数组:\n{ $numpy_array_converted}")
+    numpy_array_converted.printArray()
+    println(s"NumPy 数组类型: ${numpy_array_converted.getDType}")
 
 
     //17
     // 修改张量
-//    cpu_tensor(0, 1) = 25.0
-//    println(f"\n修改后的 PyTorch 张量:\n ${cpu_tensor}")
-//    println(f"修改张量后的 NumPy 数组:\n ${numpy_array_converted}")
-//
-//    // 修改 NumPy 数组
-//    numpy_array_converted(1, 0) = 35.0
-//    println(f"\n修改后的 NumPy 数组:\n ${numpy_array_converted}")
-//    println(f"修改 NumPy 数组后的张量:\n ${cpu_tensor}")
+//    cpu_tensor.update(0, 1) = 25.0
+    cpu_tensor.update(indices = Seq(0, 1), values = 25.0)
+    println(f"\n修改后的 PyTorch 张量:\n ${cpu_tensor}")
+    println(f"修改张量后的 NumPy 数组:\n ${numpy_array_converted}")
+
+    // 修改 NumPy 数组
+//    numpy_array_converted.update(1, 0) = 35.0
+//    numpy_array_converted.update(indices = Seq(1, 0), values = 35.0)
+    println(f"\n修改后的 NumPy 数组:\n ${numpy_array_converted}")
+    println(f"修改 NumPy 数组后的张量:\n ${cpu_tensor}")
 
 
     //18   Unsupported dtype for numpy conversion: float64
@@ -413,43 +411,45 @@ object lesson_01 {
 
     //24
     // 1. NumPy数组到PyTorch张量
-//    val numpy_array = np.array(Seq(Seq(1.0, 2.0), Seq(3.0, 4.0)))
-//    println("\nNumPy数组：")
-//    println(numpy_array)
-//    println(f"类型: {type(numpy_array)}")
+    val numpy_array2 = np.array[Double,Double](Array(1.0, 2.0, 3.0, 4.0)) //.reshape(2,2)
+    println(s"\nnumpy_array2 NumPy数组：${numpy_array2.getArray.mkString(",")}")
+    numpy_array2.printArray()
+    println(s"numpy_array2 形状: ${numpy_array2.getShape.mkString(",")}")
+    println(f"类型: ${numpy_array2.getDType}")
 //
 //    // 转换为PyTorch张量
-//    val tensor_from_numpy = torch.from_numpy(numpy_array)
-//    println("\n从NumPy数组创建的张量：")
-//    println(tensor_from_numpy)
-//    println(f"类型: {type(tensor_from_numpy)}")
+    val tensor_from_numpy2 = torch.from_numpy(numpy_array2)
+    println("\n从NumPy数组 numpy_array2 创建的张量：")
+    println(tensor_from_numpy2)
+    println(f"类型: ${tensor_from_numpy2.dtype}")
 //
 //    // 重要提示：在CPU上，torch.from_numpy与NumPy数组共享内存
 //    // 修改其中一个会影响另一个
-//    numpy_array(0, 0) = 99.0
-//    println("\n修改后的NumPy数组：")
-//    println(numpy_array)
-//    println("修改NumPy数组后的张量（共享内存）：")
-//    println(tensor_from_numpy)
+//    numpy_array2(0, 0) = 99.0
+    println("\n修改后的NumPy数组：")
+    println(numpy_array)
+    println("修改NumPy数组后的张量（共享内存）：")
+    println(tensor_from_numpy2)
 //
 //    // 2. PyTorch张量到NumPy数组
 //    // 让我们使用不同的张量，以避免之前的修改
-//    val another_tensor = torch.tensor(Seq(Seq(5, 6), Seq(7, 8))).to(torch.float64) //, dtype=torch.float64)
-//    println("\n另一个PyTorch张量：")
-//    println(another_tensor)
-//
-//    // 转换为NumPy数组
-//    val numpy_from_tensor = another_tensor.numpy()
-//    println("\n从张量创建的NumPy数组：")
-//    println(numpy_from_tensor)
-//    println(f"类型: {type(numpy_from_tensor)}")
+    val another_tensor = torch.tensor(Seq(Seq(5, 6), Seq(7, 8))).to(torch.float64) //, dtype=torch.float64)
+    println("\n另一个PyTorch张量：")
+    println(another_tensor)
+
+    // 转换为NumPy数组
+    val numpy_from_tensor = another_tensor.numpy()
+    println("\n从张量创建的NumPy数组：")
+    numpy_from_tensor.printArray()
+    println(f"类型: ${numpy_from_tensor.getDType}")
 //
 //    // 同样，在CPU上内存是共享的
 //    another_tensor(1, 1) = 100.0
-//    println("\n修改后的张量：")
-//    println(another_tensor)
-//    println("修改张量后的NumPy数组（共享内存）：")
-//    println(numpy_from_tensor)
+    another_tensor.update(Seq(1, 1),100.0)
+    println("\n修改后的张量：")
+    println(another_tensor)
+    println("修改张量后的NumPy数组（共享内存）：")
+    numpy_from_tensor.printArray()
 
 
   }

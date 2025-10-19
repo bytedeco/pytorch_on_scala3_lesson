@@ -1,5 +1,3 @@
-package lesson
-
 //package lesson
 //
 //import org.bytedeco.pytorch
@@ -138,7 +136,7 @@ package lesson
 //    // 样本数据（请替换为你的实际数据）
 //    val num_samples = 100
 //    val num_features = 10
-//    val features_data = np.randn(num_samples, num_features)
+//    val features_data = np.randn(num_samples, num_features) //todo numpy randn随机生成特征数据
 //    val labels_data = np.randint(0, 5, size = num_samples) // 示例：5 个类别
 //
 //    // 创建自定义数据集实例

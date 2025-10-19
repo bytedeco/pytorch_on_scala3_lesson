@@ -1,29 +1,12 @@
 package lesson
 
-import org.bytedeco.javacpp.{FloatPointer, PointerScope}
-import org.bytedeco.pytorch
-import org.bytedeco.pytorch.global.torch as torchNative
-import org.bytedeco.pytorch.*
-import torch.Device.{CPU, CUDA}
-import torch.internal.NativeConverters.{fromNative, toNative}
+
+
+import torch.{Tensor, *}
 import torch.nn.modules.{HasParams, TensorModule}
 import torch.nn.{modules, functional as F}
-import torch.numpy.TorchNumpy as np
-import torch.optim.Adam
-import torch.utils.data.dataloader.*
-import torch.utils.data.datareader.ChunkDataReader
-import torch.utils.data.dataset.*
-import torch.utils.data.dataset.custom.{FashionMNIST, MNIST}
-import torch.utils.data.sampler.RandomSampler
-import torch.utils.data.*
-import torch.{Tensor, *}
-
-import java.net.URL
-import java.nio.file.{Files, Path, Paths}
-import java.util.zip.GZIPInputStream
 import scala.collection.mutable.SortedMap as OrderedDict
 import scala.collection.{mutable, Set as KeySet}
-import scala.util.*
 
 // 定义网络结构
 class SimpleNets[ParamType <: FloatNN: Default](input_size: Int, hidden_size: Int, output_size: Int) extends TensorModule[ParamType]  with HasParams[ParamType] {

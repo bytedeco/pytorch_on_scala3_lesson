@@ -8,5 +8,7 @@ lazy val root = (project in file("."))
   )
 
 
-libraryDependencies +=   "io.github.mullerhai" % "storch_core_3" % "0.7.2-1.5.12"
+libraryDependencies +=   "io.github.mullerhai" % "storch_core_3" % "0.7.3-1.5.12"
 libraryDependencies +=   "io.github.mullerhai" % "storch-gpu-adapter_3" % "0.1.3-1.5.12"
+// https://mvnrepository.com/artifact/org.bytedeco/cuda-platform-redist
+//libraryDependencies += "org.bytedeco" % "cuda-platform-redist" % "12.9-9.10-1.5.12"

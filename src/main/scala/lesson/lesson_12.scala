@@ -25,24 +25,25 @@ import scala.collection.mutable.SortedMap as OrderedDict
 import scala.collection.{mutable, Set as KeySet}
 import scala.util.*
 
-class ControlFlowModel[ParamType <: FloatNN: Default](num_classes: Int=10) extends nn.Module {
+class ControlFlowModel[ParamType <: FloatNN: Default](num_classes: Int=10)  extends TensorModule[ParamType] with HasParams[ParamType]  {
 
   val linear1 = nn.Linear(10, 5)
   val linear2 = nn.Linear(5, 1)
 
   override def apply(x: Tensor[ParamType]): Tensor[ParamType] = forward(x)
 
-  def forward(x: Tensor[ParamType]): Tensor[ParamType] = {
-    x = torch.relu(linear1(x))
+  def forward(input: Tensor[ParamType]): Tensor[ParamType] = {
+    var x = torch.relu(linear1(input))
     // 数据依赖的控制流
-    if x.mean() > 0.5 then
+    val mean = x.mean().data_ptr_double
+    if x.mean() >> 0.5 then
       linear2(x)
     else
       torch.zeros_like(linear2(x))
 
   }
 }
-class SimpleModel[ParamType <: FloatNN: Default](num_classes: Int=10) extends nn.Module {
+class SimpleModel[ParamType <: FloatNN: Default](num_classes: Int=10) extends TensorModule[ParamType]  {
 
   val linear = nn.Linear(10, 5)
 

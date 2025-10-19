@@ -1,5 +1,4 @@
-package lesson
-
+//
 //package lesson
 //
 //import org.bytedeco.pytorch

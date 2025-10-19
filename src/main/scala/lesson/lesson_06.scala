@@ -1,33 +1,17 @@
 package lesson
 
-import org.bytedeco.javacpp.{FloatPointer, PointerScope}
-import org.bytedeco.pytorch
-import org.bytedeco.pytorch.global.torch as torchNative
 import torch.Device.{CPU, CUDA}
 import torch.internal.NativeConverters.{fromNative, toNative}
 import torch.nn.modules.{HasParams, TensorModule}
 import torch.nn.{modules, functional as F}
-import torch.numpy.TorchNumpy as np
-import torch.optim.Adam
-import torch.utils.data.dataloader.*
-import torch.utils.data.datareader.ChunkDataReader
-import torch.utils.data.dataset.*
-import torch.utils.data.dataset.custom.{FashionMNIST, MNIST}
-import torch.utils.data.sampler.RandomSampler
 import torch.utils.data.*
 import torch.*
 
-import java.net.URL
-import java.nio.file.{Files, Path, Paths}
-import java.util.zip.GZIPInputStream
-import scala.collection.mutable.SortedMap as OrderedDict
-import scala.collection.{mutable, Set as KeySet}
-import scala.util.*
 
 object lesson_06 {
 
 
-  @main
+//  @main
   def main(): Unit = {
     // 使用随机梯度下降 (SGD)
     val learning_rate = 0.01
@@ -37,16 +21,15 @@ object lesson_06 {
     // 设备配置（如果可用则使用GPU）
     val device = torch.Device(if torch.cuda.is_available() then "cuda" else "cpu")
     println(s"正在使用设备: $device")
-//    val optimizer = optim.SGD(model.parameters(true), lr = learning_rate)
-//
-//    // 或者，使用Adam优化器
-//    optimizer = optim.Adam(model.parameters(true), lr = 0.001)
-
+    //    val optimizer = optim.SGD(model.parameters(true), lr = learning_rate)
+    //
+    //    // 或者，使用Adam优化器
+    //    optimizer = optim.Adam(model.parameters(true), lr = 0.001)
 
 
     //02
     // 生成合成数据: y = 2x + 1 + 噪声
-    val true_weight = torch.tensor(Seq(2.0) )
+    val true_weight = torch.tensor(Seq(2.0))
     val true_bias = torch.tensor(Seq(1.0))
 
     // 生成训练数据
@@ -80,12 +63,12 @@ object lesson_06 {
     println("模型定义:")
     println(model.summarize)
     println("\n初始参数:")
-    model.named_parameters().foreach( (name, param) =>
+    model.named_parameters().foreach((name, param) =>
       if param.requires_grad then
         println(s"$name: ${param.data.squeeze()}")
     )
     println("\n开始训练...")
-    for( epoch<- (0 until num_epochs)) {
+    for (epoch <- (0 until num_epochs)) {
       model.train() // 将模型设置为训练模式
       var running_loss = 0.0
       var num_batches = 0
@@ -158,7 +141,7 @@ object lesson_06 {
     val loaded_model = nn.Linear(1, 1).to(device)
 
     // 然后，加载保存的状态字典
-//    loaded_model.load_state_dict(torch.load(model_save_path))
+    //    loaded_model.load_state_dict(torch.load(model_save_path))
     println("模型 state_dict 加载成功。")
 
     // 请记住，如果用于推断，请将加载的模型设置为评估模式
@@ -166,7 +149,7 @@ object lesson_06 {
 
     // 现在您可以使用 loaded_model 进行预测了
     // 使用已加载模型进行预测的例子：
-     torch.no_grad {
+    torch.no_grad {
       val sample_input = torch.tensor(10.0).to(device) // 示例输入
       val prediction = loaded_model(sample_input)
       println(f"输入 10.0 的预测值: ${prediction.item()}")

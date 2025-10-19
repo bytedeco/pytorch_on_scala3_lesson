@@ -1,29 +1,10 @@
 package lesson
 
-import org.bytedeco.javacpp.{FloatPointer, PointerScope}
-import org.bytedeco.pytorch
-import org.bytedeco.pytorch.global.torch as torchNative
-import org.bytedeco.pytorch.*
-import torch.Device.{CPU, CUDA}
-import torch.internal.NativeConverters.{fromNative, toNative}
 import torch.nn.functional as F
 import torch.nn.modules.HasParams
 import torch.numpy.TorchNumpy as np
-import torch.optim.Adam
-import torch.utils.data.dataloader.*
-import torch.utils.data.datareader.ChunkDataReader
-import torch.utils.data.dataset.*
-import torch.utils.data.dataset.custom.{FashionMNIST, MNIST}
-import torch.utils.data.sampler.RandomSampler
-import torch.utils.data.*
 import torch.*
 
-import java.net.URL
-import java.nio.file.{Files, Path, Paths}
-import java.util.zip.GZIPInputStream
-import scala.collection.mutable.SortedMap
-import scala.collection.{mutable, Set as KeySet}
-import scala.util.*
 object lesson_02 {
 
 //  @main
@@ -277,7 +258,8 @@ object lesson_02 {
 
     // 修改一个元素
 //    x_1d(1) = 110
-//    println(f"\n修改后的张量:\n ${x_1d}")
+    x_1d.update(Seq(1),110)
+    println(f"\n修改后的张量:\n ${x_1d}")
 
 
     //02
@@ -300,7 +282,8 @@ object lesson_02 {
 
     // 修改一个元素
 //    x_2d(1, 1) = 55
-//    println(f"\n修改后的二维张量:\n ${x_2d}")
+    x_2d.update(Seq(1, 1),55)
+    println(f"\n修改后的二维张量:\n ${x_2d}")
 
 
     //03
@@ -320,16 +303,22 @@ object lesson_02 {
     println(f"切片 y_1d(6 until y_1d.size(0)): ${slice3}")
 
     // 选择每隔一个的元素
+    val slice41 = y_1d(0.by(2))
 //    val slice4 = y_1d(0.::(y_1d.size(0)).by(2)) //(0 until y_1d.size(0) by 2)
-//    println(f"切片 y_1d(0 until y_1d.size(0) by 2): ${slice4}")
-//
+    println(f"切片 y_1d(0 until y_1d.size(0) by 2): ${slice41}")
+
 //    // 选择从索引1到7的元素，步长为2
 //    val slice5 = y_1d(1.::(8).by(2)) //(1 until 8 by 2)
+//    val slice51 = y_1d(1.::(8).by(2)) //(1 until 8 by 2)
 //    println(f"切片 y_1d(1 until 8 by 2): ${slice5}")
+
+    val slice52 = y_1d(1.untils(8)) //(1 until 8 by 2)
+    println(f"切片 y_1d(1 until 8 by 2): ${slice52}")
 //
 //    // 反转张量
 //    val slice6 = y_1d((y_1d.size(0) - 1).::(0).by(-1)) //(y_1d.size(0) - 1 until 0 by -1)
-//    println(f"切片 y_1d(y_1d.size(0) - 1 until 0 by -1): ${slice6}")
+//    val slice61 = y_1d((y_1d.size(0) - 1).by(-1)) //todo here have a problem
+//    println(f"切片 y_1d(y_1d.size(0) - 1 until 0 by -1): ${slice61}")
 
 
   //04
@@ -352,7 +341,8 @@ object lesson_02 {
 
     // 选择第0行和第2行（使用步长），所有列
 //    val sub_tensor4 = x_2d2(0.::(x_2d2.size(0)).by(2), *) //(0 until x_2d2.size(0) by 2, *)
-//    println(f"\n切片 x_2d2(0 until x_2d2.size(0) by 2, *):\n{sub_tensor4}")
+    val sub_tensor41 = x_2d2(0.by(2), ---) //(0 until x_2d2.size(0) by 2, *)
+    println(f"\n切片 x_2d2(0 until x_2d2.size(0) by 2, *):\n ${sub_tensor41}")
 
   //05
     println(f"修改切片前的原始 x_2d:\n ${x_2d2}")
@@ -362,9 +352,10 @@ object lesson_02 {
 
     //修改切片
 //    sub_tensor(0, 0) = 101
+    sub_tensor.update(Seq(0, 0),101)
 //
-//    println(f"\n修改后的切片:\n ${sub_tensor}")
-//    println(f"\n修改切片后的原始 x_2d2:\n ${x_2d2}") // 注意变化！
+    println(f"\n修改后的切片:\n ${sub_tensor}")
+    println(f"\n修改切片后的原始 x_2d2:\n ${x_2d2}") // 注意变化！
 
 
     //06
@@ -385,7 +376,9 @@ object lesson_02 {
     val index  = data <= 3
     println(f"\n将小于等于3的元素为零后的数据索引 mask :\n ${data}")
 //    data(index) = 0
-//    println(f"\n将小于等于3的元素设置为零后的数据:\n ${data}")
+//    data.update(Seq(index),0)
+    data.update(index,0)
+    println(f"\n将小于等于3的元素设置为零后的数据 更新后 :\n ${data}")
 
 
     //07
