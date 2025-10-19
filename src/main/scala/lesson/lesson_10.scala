@@ -357,7 +357,7 @@ class Transformer[ParamType <: FloatNN: Default](num_encoder_layers: Int, num_de
 
 object lesson_10 {
 
-  @main
+//  @main
   def main(): Unit = {
 
 

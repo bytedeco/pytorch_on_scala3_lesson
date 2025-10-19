@@ -65,7 +65,7 @@ class SimpleRNNModel[ParamType <: FloatNN: Default](input_dim: Int, hidden_dim: 
   }
 }
 
-class SimpleCNN[ParamType <: FloatNN: Default](num_classes: Int = 10) extends TensorModule[ParamType]  with HasParams[ParamType] {
+class SimpleCNNz[ParamType <: FloatNN: Default](num_classes: Int = 10) extends TensorModule[ParamType]  with HasParams[ParamType] {
 
   // 输入形状: (批次, 1, 28, 28) - 假设是像MNIST那样的灰度图像
   val conv1 = nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=1)
@@ -179,7 +179,7 @@ object lesson_07_2 {
 
     //05
     // 实例化模型
-    val cnn_model = SimpleCNN(num_classes = 10)
+    val cnn_model = SimpleCNNz(num_classes = 10)
 
     // 创建虚拟输入批次（例如，4张图像，1通道，28x28像素）
     // requires_grad=False，因为我们只是进行前向传播演示

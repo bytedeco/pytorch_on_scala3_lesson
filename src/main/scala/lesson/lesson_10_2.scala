@@ -8,16 +8,7 @@ import torch.Device.{CPU, CUDA}
 import torch.internal.NativeConverters.{fromNative, toNative}
 import torch.nn.modules.{HasParams, TensorModule}
 import torch.nn.{modules, functional as F}
-import torch.numpy.TorchNumpy as np
-import torch.optim.Adam
-import torch.utils.data.dataloader.*
-import torch.utils.data.datareader.ChunkDataReader
-import torch.utils.data.dataset.*
-import torch.utils.data.dataset.custom.{FashionMNIST, MNIST}
-import torch.utils.data.sampler.RandomSampler
-import torch.utils.data.*
 import torch.*
-
 import java.net.URL
 import java.nio.file.{Files, Path, Paths}
 import java.util.zip.GZIPInputStream

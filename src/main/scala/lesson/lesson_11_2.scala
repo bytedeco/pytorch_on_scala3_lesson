@@ -79,7 +79,7 @@ import scala.util.*
 //
 //}
 // 1. 定义一个简单模型
-class SimpleCNNz[ParamType <: FloatNN: Default](num_classes: Int=10) extends TensorModule[ParamType] {
+class SimpleCNN21[ParamType <: FloatNN: Default](num_classes: Int=10) extends TensorModule[ParamType] {
 
   val conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
   val relu = nn.ReLU()

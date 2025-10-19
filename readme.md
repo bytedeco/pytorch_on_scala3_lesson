@@ -7,7 +7,7 @@
 
 ## PyTorch ON Scala3 Lesson You will learn:
 
-### Lesson 01 How to create Tensor
+### Lesson 01 How to create Tensor and numpy NDArray
 ### lesson 02 Tensor operate
 ### lesson 03 Tensor autograd and backward
 ### lesson 04 How to use torch layer loss function and activation 
