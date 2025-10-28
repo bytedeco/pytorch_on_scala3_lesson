@@ -66,7 +66,7 @@ class SimpleCustomDataset[
 
 object lesson_05 {
 
-  @main
+//  @main
   def main(): Unit = {
 
     // 01

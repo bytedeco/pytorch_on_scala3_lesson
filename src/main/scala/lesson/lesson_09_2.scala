@@ -127,7 +127,7 @@ object lesson_09_2 {
     // 05
 
     def print_grad_hook[D <: DType](grad: Tensor[D]): Unit = {
-      println(f"Gradient received: shape=${grad.shape}, norm=${grad.norm()}")
+      println(f"Gradient received: shape=${grad.shape}, norm=${grad.norm}")
     }
 
     val voidHook = new VoidTensorHook {

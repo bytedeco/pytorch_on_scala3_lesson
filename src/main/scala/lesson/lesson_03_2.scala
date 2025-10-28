@@ -4,7 +4,7 @@ import torch.*
 
 object lesson_03_2 {
 
-//  @main
+  @main
   def main(): Unit = {
 
     // 10
