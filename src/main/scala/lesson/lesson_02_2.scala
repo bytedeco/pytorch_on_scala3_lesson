@@ -394,5 +394,93 @@ object lesson_02_2 extends App {
     // tensor([[11, 12, 13],
     //         [14, 15, 16]])
 
+
+    val x1x = torch.randn(3, 4)
+    val mask2 = x1x.ge(0.5)
+    val yy = torch.masked_select(x1x, mask2)
+
+    //x1x: Tensor[torch.Tensor[torch.DType$package.FloatNN | torch.DType$package.ComplexNN]] = tensor dtype=float32, shape=[3, 4], device=CPU
+    //[[-1.2909, -1.4690, -1.7415, 2.0152],
+    // [2.0195, 0.9681, 0.6905, 1.0762],
+    // [1.6381, 1.8311, 0.5637, -0.4784]]
+    //mask: Tensor[Bool] = tensor dtype=bool, shape=[3, 4], device=CPU
+    //[[false, false, false, true],
+    // [true, true, true, true],
+    // [true, true, true, false]]
+    //yy: Tensor[torch.Tensor[torch.Float64 | torch.BFloat16 | torch.Complex32 | torch.Float16 | torch.Float32 | torch.Complex64 | torch.Complex128]] = tensor dtype=float32, shape=[8], device=CPU
+    //[2.0152, 2.0195, 0.9681, ..., 1.6381, 1.8311, 0.5637]
+
+    val aa = torch.tensor(Seq(1, 2, 3, 4))
+    val ab = aa.masked_fill(mask = torch.tensor(Seq(1, 1, 0, 0)).to(torch.bool), value = -1)
+
+    val ac = torch.masked_fill(aa, torch.tensor(Seq(1,1,0,0)).to(torch.bool), value = -12)
+    //aa: Tensor[Float32] = tensor dtype=float32, shape=[4], device=CPU
+    //[1.0000, 2.0000, 3.0000, 4.0000]
+    //ab: Tensor[Float32] = tensor dtype=float32, shape=[4], device=CPU
+    //[-1.0000, -1.0000, 3.0000, 4.0000]
+
+    val dd = torch.tensor(Seq(Seq(0, 0, 0, 0, 0), Seq(0, 0, 0, 0, 0))).to(torch.int32)
+    val maskd = torch.tensor(Seq(Seq(0, 0, 0, 1, 1), Seq(1, 1, 0, 1, 1)))
+    val source = torch.tensor(Seq(Seq(0, 1, 2, 3, 4), Seq(5, 6, 7, 8, 9))).to(torch.int32)
+    dd.masked_scatter_(maskd.to(torch.bool), source)
+    torch.masked_scatter(dd, maskd.to(torch.bool),source)
+    //tensor([[0, 0, 0, 0, 1],
+    //        [2, 3, 0, 4, 5]])
+
+    val ax = torch.tensor(Seq(1, 2, 3))
+    val bx = torch.tensor(Seq(4, 5, 6))
+    val resultx = torch.einsum("i,i->", ax, bx)
+    //tensor(32)
+
+
+    val ad = torch.tensor(Seq(Seq(1, 2), Seq(3, 4)))
+    val bd = torch.tensor(Seq(Seq(5, 6), Seq(7, 8)))
+    val res = torch.einsum("ij,jk->ik", ad, bd)
+    //res: Tensor[Float32] = tensor dtype=float32, shape=[2, 2], device=CPU
+    //[[19.0000, 22.0000],
+    // [43.0000, 50.0000]]
+
+    val as = torch.randn(2, 3, 4)
+    val bs = torch.randn(2, 4, 5)
+    val results = torch.einsum("bij,bjk->bik", as, bs)
+    //dtype=float32, shape=[2, 3, 5],
+
+    val ar = torch.tensor(Seq(Seq(1, 2, 3), Seq(4, 5, 6)))
+    val resr = torch.einsum("ij -> ji", ar)
+    //ar: Tensor[Float32] = tensor dtype=float32, shape=[2, 3], device=CPU
+    //[[1.0000, 2.0000, 3.0000],
+    // [4.0000, 5.0000, 6.0000]]
+    //resr: Tensor[Float32] = tensor dtype=float32, shape=[3, 2], device=CPU
+    //[[1.0000, 4.0000],
+    // [2.0000, 5.0000],
+    // [3.0000, 6.0000]]
+
+
+    //n: batch_size，批次大小。
+    //q: seq_len_q，查询序列的长度。
+    //k: seq_len_k，键序列的长度。
+    //h: num_heads，多头注意力中的头数。
+    //d: head_dim，每个头的维度。
+//    queries: (batch_size, seq_len_q, num_heads, head_dim)
+//    keys: (batch_size, seq_len_k, num_heads, head_dim)
+
+   val queries = torch.randn(32,1024,8,64)
+   val keys = torch.randn(32, 512, 8, 64)
+   val trans = torch.einsum("nqhd,nkhd->nhqk", queries, keys)
+//trans: Tensor[torch.Tensor[torch.Float64 | torch.BFloat16 | torch.Complex32 | torch.Float16 | torch.Float32 | torch.Complex64 | torch.Complex128]] = tensor dtype=float32,
+    // shape=[32, 8, 1024, 512], device=CPU
+
+
+    //Q（Query）：形状为 (batch_size, seq_len, d_k)
+    //K（Key）：形状为 (batch_size, seq_len, d_k)
+   val Q = torch.randn(2, 10, 64) // (batch_size, seq_len, d_k)
+   val K = torch.randn(2, 10, 64) // (batch_size, seq_len, d_k)
+
+    // # (batch_size, seq_len, seq_len)  tensor dtype=float32, shape=[2, 10, 10], device=CPU 
+   val attention_scores = torch.einsum("bqd,bkd->bqk", Q, K) / torch.sqrt(torch.tensor(64.0))
+    //(batch_size, seq_len, seq_len)
+   val attention_weights = F.softmax(attention_scores, dim = -1l)
+    // tensor dtype=float32, shape=[2, 10, 10], device=CPU 
+
   }
 }
