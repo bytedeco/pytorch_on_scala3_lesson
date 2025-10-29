@@ -14,7 +14,7 @@ import scala.collection.Seq
 ////    csrCacheDirectory := file("D:\\coursier"),
 //  )
 
-ThisBuild / tlBaseVersion := "0.1.1" // your current series x.y
+ThisBuild / tlBaseVersion := "0.1.2" // your current series x.y
 //ThisBuild / CoursierCache := file("D:\\coursier")
 ThisBuild / organization := "io.github.mullerhai" //"dev.storch"
 ThisBuild / organizationName := "storch.dev"
@@ -24,7 +24,7 @@ ThisBuild / developers := List(
   // your GitHub handle and name
   tlGitHubDev("mullerhai", "mullerhai")
 )
-ThisBuild / version := "0.1.1"
+ThisBuild / version := "0.1.2"
 
 ThisBuild / scalaVersion := "3.6.3"
 //
@@ -67,7 +67,7 @@ lazy val root = (project in file("."))
   )
 
 
-libraryDependencies +=   "io.github.mullerhai" % "storch_core_3" % "0.7.5-1.5.12"
+libraryDependencies +=   "io.github.mullerhai" % "storch_core_3" % "0.7.6-1.5.12"
 libraryDependencies +=   "io.github.mullerhai" % "storch-gpu-adapter_3" % "0.1.4-1.5.12"
 // https://mvnrepository.com/artifact/org.bytedeco/cuda-platform-redist
 //libraryDependencies += "org.bytedeco" % "cuda-platform-redist" % "12.9-9.10-1.5.12"

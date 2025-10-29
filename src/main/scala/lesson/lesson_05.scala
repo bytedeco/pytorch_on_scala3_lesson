@@ -18,7 +18,7 @@ import torch.utils.data.sampler.RandomSampler
 import scala.collection.mutable.SortedMap as OrderedDict
 import torch.numpy.TorchNumpy as np
 import torch.numpy.matrix.NDArray
-import torch.pandas.DataFrame as pd
+//import torch.pandas.DataFrame as pd
 import torch.optim
 
 class SimpleCustomDataset[

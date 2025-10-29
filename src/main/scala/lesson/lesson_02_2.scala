@@ -479,7 +479,7 @@ object lesson_02_2 extends App {
     // # (batch_size, seq_len, seq_len)  tensor dtype=float32, shape=[2, 10, 10], device=CPU 
    val attention_scores = torch.einsum("bqd,bkd->bqk", Q, K) / torch.sqrt(torch.tensor(64.0))
     //(batch_size, seq_len, seq_len)
-   val attention_weights = F.softmax(attention_scores, dim = -1l)
+   val attention_weights = F.softmax(attention_scores, dim = -1)
     // tensor dtype=float32, shape=[2, 10, 10], device=CPU 
 
   }
